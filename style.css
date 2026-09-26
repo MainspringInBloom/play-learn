@@ -1,0 +1,193 @@
+/* Play and Learn — shared styles for all student pages */
+
+:root {
+  --pl-bg: #F7F5EF;
+  --pl-text: #20241F;
+  --pl-muted: #6B7066;
+  --pl-muted-light: #8A8F80;
+  --pl-accent: #1E6B5C;
+  --pl-accent-dark: #154D42;
+  --pl-accent-bg: #EAF2E8;
+  --pl-accent-bg-2: #DCE7D9;
+  --pl-border: #E4DFD0;
+  --pl-border-2: #EFECDF;
+  --pl-warn-bg: #F4ECDB;
+  --pl-warn-text: #B4750C;
+  --pl-danger-bg: #F7E7E4;
+  --pl-danger-text: #C24B3F;
+}
+
+body {
+  background: var(--pl-bg);
+  color: var(--pl-text);
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+}
+
+.pl-display {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+.pl-mono {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+/* Navbar */
+.pl-navbar {
+  border-bottom: 1px solid var(--pl-border);
+  padding: 18px 0;
+  background: var(--pl-bg);
+}
+
+.pl-brand {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--pl-accent);
+  text-decoration: none;
+}
+
+.pl-navlink {
+  padding: 10px 4px;
+  border-bottom: 2px solid transparent;
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--pl-muted);
+  text-decoration: none;
+}
+
+.pl-navlink.active,
+.pl-navlink:hover {
+  color: var(--pl-text);
+  border-bottom-color: var(--pl-accent);
+}
+
+.pl-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--pl-accent-bg-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--pl-accent);
+}
+
+/* Buttons */
+.btn-pl-primary {
+  background: var(--pl-accent);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 10px 22px;
+}
+.btn-pl-primary:hover {
+  background: var(--pl-accent-dark);
+  color: #fff;
+}
+.btn-pl-primary:disabled {
+  background: #C6D6CD;
+}
+
+.btn-pl-ghost {
+  background: transparent;
+  color: var(--pl-text);
+  border: 1.5px solid #D8D3C4;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 10px 22px;
+}
+.btn-pl-ghost:hover {
+  background: #F0EEE4;
+}
+
+/* Cards */
+.pl-card {
+  background: #fff;
+  border: 1px solid var(--pl-border);
+  border-radius: 16px;
+}
+
+/* Progress bar */
+.pl-progress {
+  height: 8px;
+  background: var(--pl-border-2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.pl-progress-fill {
+  height: 100%;
+  background: var(--pl-accent);
+}
+
+/* Game cards */
+.pl-game-card {
+  border-radius: 14px;
+  border: 1.5px solid var(--pl-border);
+  background: #fff;
+  cursor: pointer;
+  padding: 16px 18px;
+  text-align: left;
+  width: 100%;
+  transition: border-color .12s, background .12s;
+}
+.pl-game-card:hover { border-color: #B9D6CD; }
+.pl-game-card.picked { border-color: var(--pl-accent); background: var(--pl-accent-bg); }
+.pl-game-card.matched { border-color: var(--pl-accent); background: var(--pl-accent-bg-2); opacity: .6; cursor: default; }
+
+/* Quiz options */
+.pl-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  border-radius: 12px;
+  border: 1.5px solid var(--pl-border);
+  background: #fff;
+  padding: 14px 18px;
+  cursor: pointer;
+}
+.pl-option:hover { border-color: #B9D6CD; }
+.pl-option.selected { border-color: var(--pl-accent); background: var(--pl-accent-bg); }
+.pl-option.correct { border-color: var(--pl-accent); background: var(--pl-accent-bg-2); }
+.pl-option.incorrect { border-color: var(--pl-danger-text); background: var(--pl-danger-bg); }
+
+.pl-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #D8D3C4;
+  flex-shrink: 0;
+}
+.pl-option.selected .pl-dot,
+.pl-option.correct .pl-dot { border-color: var(--pl-accent); background: var(--pl-accent); }
+.pl-option.incorrect .pl-dot { border-color: var(--pl-danger-text); background: var(--pl-danger-text); }
+
+/* Login page */
+.pl-login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pl-login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px;
+}
+.pl-form-label {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--pl-text);
+}
+.form-control.pl-input {
+  border: 1.5px solid var(--pl-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.form-control.pl-input:focus {
+  border-color: var(--pl-accent);
+  box-shadow: 0 0 0 3px rgba(30,107,92,.12);
+}
