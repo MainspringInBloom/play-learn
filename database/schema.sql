@@ -58,6 +58,8 @@ CREATE TABLE `lessons` (
   `course_id` int NOT NULL,
   `title` varchar(150) NOT NULL,
   `content` text,
+  `game_type` varchar(50) DEFAULT NULL,
+  `game_data` json DEFAULT NULL,
   `sort_order` int DEFAULT '0',
   PRIMARY KEY (`lesson_id`),
   KEY `course_id` (`course_id`),
@@ -71,7 +73,7 @@ CREATE TABLE `lessons` (
 
 LOCK TABLES `lessons` WRITE;
 /*!40000 ALTER TABLE `lessons` DISABLE KEYS */;
-INSERT INTO `lessons` VALUES (1,1,'Variables and Data Types','Learn how to create variables in Python and the difference between strings, integers, and booleans.',1),(2,1,'Loops and Conditionals','Covers for loops, while loops, if/elif/else branching, and common off-by-one mistakes.',2),(3,1,'Functions','How to define a function, pass arguments, and return values in Python.',3),(4,2,'It\'s All About Objects','Introduces classes, objects, and the \"this\" keyword in Java.',1),(5,2,'Setting Up Your Environment',NULL,0);
+INSERT INTO `lessons` VALUES (1,1,'Variables and Data Types','Learn how to create variables in Python and the difference between strings, integers, and booleans.',NULL,NULL,1),(2,1,'Loops and Conditionals','Covers for loops, while loops, if/elif/else branching, and common off-by-one mistakes.',NULL,NULL,2),(3,1,'Functions','How to define a function, pass arguments, and return values in Python.',NULL,NULL,3),(4,2,'It\'s All About Objects','Introduces classes, objects, and the \"this\" keyword in Java.',NULL,NULL,1),(5,2,'Setting Up Your Environment',NULL,NULL,NULL,0);
 /*!40000 ALTER TABLE `lessons` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -141,4 +143,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-29 17:49:53
+-- Dump completed on 2026-09-29 19:02:13
