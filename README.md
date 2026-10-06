@@ -32,6 +32,10 @@ scores/progress tables, and the progress charts.
    ```
 
 3. **Set your DB password** in `config/db.php` (`DB_PASS`).
+By default db.php has a placeholder password, this is by design, the host
+should open db.php and replace the placeholder field with their local MySQL password.
+NOTE: ALWAYS exclude db.php from commits unless you explicitly made a design change to
+it and are certain the placeholder is still there.
 
 4. **Run the dev server** from the repo root:
    ```
