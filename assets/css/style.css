@@ -1,0 +1,146 @@
+:root {
+    --pl-cream: #F7F5EE;
+    --pl-green-dark: #1F4E3D;
+    --pl-green-mid: #2F6B4F;
+    --pl-green-pale: #E7EFE6;
+    --pl-border: #DDE3D6;
+    --pl-text: #2B2B26;
+    --pl-text-muted: #6B6A62;
+}
+
+body {
+    background: var(--pl-cream);
+    color: var(--pl-text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* ---- Header / nav ---- */
+.pl-header {
+    background: var(--pl-cream);
+    border-bottom: 1px solid var(--pl-border);
+}
+
+.pl-header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.pl-logo {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--pl-green-dark);
+    text-decoration: none;
+}
+
+.pl-admin-tag {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--pl-text-muted);
+    border: 1px solid var(--pl-border);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    margin-left: 0.25rem;
+}
+
+.pl-nav {
+    display: flex;
+    gap: 1.5rem;
+    flex: 1;
+}
+
+.pl-nav a {
+    color: var(--pl-text-muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 2px solid transparent;
+}
+
+.pl-nav a.active,
+.pl-nav a:hover {
+    color: var(--pl-text);
+    border-bottom-color: var(--pl-green-dark);
+}
+
+.pl-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.pl-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--pl-green-pale);
+    color: var(--pl-green-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* ---- Main content ---- */
+.pl-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+/* ---- Cards ---- */
+.pl-card {
+    background: #fff;
+    border: 1px solid var(--pl-border);
+    border-radius: 10px;
+}
+
+.pl-table {
+    background: #fff;
+    border: 1px solid var(--pl-border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* ---- Buttons ---- */
+.btn-pl-primary {
+    background: var(--pl-green-dark);
+    border-color: var(--pl-green-dark);
+    color: #fff;
+}
+
+.btn-pl-primary:hover {
+    background: var(--pl-green-mid);
+    border-color: var(--pl-green-mid);
+    color: #fff;
+}
+
+/* ---- Login page ---- */
+.pl-login-body {
+    background: var(--pl-cream);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pl-login-card {
+    background: #fff;
+    border: 1px solid var(--pl-border);
+    border-radius: 12px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 380px;
+}
+
+.pl-login-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--pl-green-dark);
+}
