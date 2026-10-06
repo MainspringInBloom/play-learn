@@ -1,21 +1,22 @@
-# Frontend branch — frontend-dashboard
+# Backend branch — backend-admin-crud
 
-Owns: `includes/header.php`, `includes/footer.php`, `assets/css/style.css`,
-`student/*`.
+Owns: `includes/auth.php`, `includes/admin_header.php`, `login.php`,
+`logout.php`, `admin/*`.
 
 ## What's here
-- `includes/header.php` / `footer.php` — shared student-facing nav shell
-  (Dashboard / Quizzes / Games / Progress), styled to match the mockup.
-- `assets/css/style.css` — cream/dark-green palette from the mockup.
-- `student/dashboard.php` — wired to real `courses`/`lessons` data. Stats
-  (lessons completed, quiz average, games played) and the activity feed are
-  intentionally placeholder `—` values with a comment — real data needs the
-  `scores`/progress tables, which land in weeks 5–6.
-- `student/syllabus.php`, `student/lesson.php` — real lesson content.
-- `student/quizzes.php`, `student/games.php`, `student/progress.php` — nav
-  stubs so header links don't 404; built out weeks 5–6.
+- `includes/auth.php` — session helpers (`require_login`, `require_role`,
+  `redirect_for_role`) used by every protected page, frontend included.
+- `login.php` / `logout.php` — session-based login for all 3 roles,
+  `password_verify()` against `users.password_hash`.
+- `admin/` — full CRUD for lessons and quizzes: list, add, edit, delete,
+  all via prepared statements. Delete is POST-only with a confirm dialog.
 
 ## Depends on
-- `config/db.php` (db-schema branch) and `includes/auth.php`
-  (backend-admin-crud branch) — merge both first, or these pages will
-  fatal-error on a missing file.
+- `config/db.php` and the current `users`/`lessons`/`quizzes` schema from
+  the **db-schema** branch — merge that branch first or these pages will
+  fatal-error on a missing file/column.
+
+## Known gap before demo
+Seeded `users.password_hash` values are still the
+`$2y$10$REPLACE_WITH_REAL_HASH` placeholder from week 2 — generate real
+hashes with `password_hash()` before testing login end-to-end.
