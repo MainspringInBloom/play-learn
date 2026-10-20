@@ -6,17 +6,15 @@ require_role('student');
 $page_title = 'Dashboard';
 $active_nav = 'dashboard';
 
-/**
- * NOTE ON SCOPE (week 3):
- * There's no student<->course enrollment table yet and no progress/score
- * tracking table yet (those land in weeks 5–6, per the schedule — `scores`
- * and the progress tracker are Ethan's week 5/6 items). So this page wires
- * up everything that IS backed by real tables right now (course + lesson
- * data), and clearly stubs the stats/activity feed that will come later.
- */
 
-// Real data: just pick the first course for now, until enrollment exists.
-$course = $pdo->query('SELECT course_id, title FROM courses ORDER BY course_id LIMIT 1')->fetch();
+// Placeholder: Enrollment tables not yet implemented, currently displays all available courses via a course switcher
+$courses = $pdo->query('SELECT course_id, title FROM courses ORDER BY course_id')->fetchAll();
+$selected_id = (int) ($_GET['course_id'] ?? 0);
+$course = null;
+foreach ($courses as $c) {
+    if ((int) $c['course_id'] === $selected_id) { $course = $c; }
+}
+$course = $course ?? ($courses[0] ?? null);
 
 $lessons = [];
 if ($course) {
@@ -37,6 +35,14 @@ require __DIR__ . '/../includes/header.php';
     <?php if ($course): ?>
         <p class="text-muted mb-0">Pick up where you left off in <?= htmlspecialchars($course['title']) ?>.</p>
     <?php endif; ?>
+</div>
+<div class="mb-3">
+    <?php foreach ($courses as $c): ?>
+        <a class="btn btn-sm <?= (int) $c['course_id'] === (int) $course['course_id'] ? 'btn-pl-primary' : 'btn-outline-secondary' ?>"
+           href="/student/dashboard.php?course_id=<?= (int) $c['course_id'] ?>">
+            <?= htmlspecialchars($c['title']) ?>
+        </a>
+    <?php endforeach; ?>
 </div>
 
 <?php if ($course): ?>
