@@ -1,5 +1,5 @@
 /**
- * API seam for the student quiz and game pages (week 5: PLACEHOLDERS).
+ * API seam for the student quiz, game and progress pages (weeks 5-6: PLACEHOLDERS).
  *
  * Every call the pages make to the server goes through PL.api, and nothing else
  * in the frontend talks to the backend. Right now each method returns sample
@@ -18,6 +18,8 @@
  *     ?demo=empty      quiz with no questions
  *     ?demo=fail-load  loading fails
  *     ?demo=fail-save  saving a score fails
+ *     ?demo=fail-feedback  loading messages fails (progress page)
+ *     (progress page also: ?demo=empty = a brand new student with no activity)
  */
 (function (global, $) {
     'use strict';
@@ -149,6 +151,62 @@
                 return failLater('Could not reach the server.');
             }
             return later({ ok: true, placeholder: true });
+        },
+
+        /**
+         * Everything the Progress page charts, in one call, for the logged-in student.
+         * Resolves with:
+         *   { totals:{ lessons_completed, total_lessons, quizzes_taken, quiz_average|null,
+         *              games_played, time_spent_seconds },
+         *     quiz_scores:    [{ attempt_id, quiz_title, score, finished_at }]  oldest first, last 20
+         *     daily_activity: [{ date:'YYYY-MM-DD', lessons, quizzes, games }]  last 14 days (gaps ok)
+         *     courses:        [{ course_id, title, completed_lessons, total_lessons }]
+         *     game_scores:    [{ lesson_title, game_label, score, max_score, completed_at }]  newest first, last 6 }
+         * See FRONTEND_WEEK6.md for the suggested SQL behind each part.
+         */
+        getProgress: function () {
+            // TODO(API): replace this body with
+            //   return request('GET', '/api/get_progress.php').then((res) => res);
+            //   (endpoint does not exist yet; contract above, queries in FRONTEND_WEEK6.md)
+            if (this.demoMode === 'fail-load') {
+                return failLater('Could not reach the server.');
+            }
+            const data = clone(PL.sample.progress);
+            if (this.demoMode === 'empty') {
+                data.totals = { lessons_completed: 0, total_lessons: 12, quizzes_taken: 0, quiz_average: null,
+                                games_played: 0, time_spent_seconds: 0 };
+                data.quiz_scores = [];
+                data.daily_activity = [];
+                data.game_scores = [];
+                data.courses.forEach((c) => { c.completed_lessons = 0; });
+            }
+            return later(data);
+        },
+
+        /**
+         * Messages sent to this student by an admin or parent (newest first).
+         * Resolves with { messages: [{ message_id, sender_name, sender_role:'admin'|'parent',
+         *                              body, created_at, read_at|null }] }
+         * The sending side and the endpoint belong to the messaging task.
+         */
+        getFeedback: function () {
+            // TODO(API): replace this body with
+            //   return request('GET', '/api/get_feedback.php');
+            if (this.demoMode === 'fail-feedback') {
+                return failLater('Could not reach the server.');
+            }
+            return later({ messages: this.demoMode === 'empty' ? [] : clone(PL.sample.feedback) });
+        },
+
+        /** Mark one message read. Resolves with { ok: true }. */
+        markFeedbackRead: function (messageId) {
+            // TODO(API): replace this body with
+            //   return request('POST', '/api/mark_feedback_read.php', { message_id: messageId });
+            void messageId;
+            if (this.demoMode === 'fail-save') {
+                return failLater('Could not reach the server.');
+            }
+            return later({ ok: true });
         },
     };
 })(window, window.jQuery);

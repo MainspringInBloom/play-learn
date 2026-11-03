@@ -1,0 +1,88 @@
+/* ==========================================================================
+   Play & Learn: Progress page (week 6). Load after style.css and play.css.
+   ========================================================================== */
+
+#progress-app [hidden] { display: none !important; }
+
+.pl-progress-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.pl-panel {
+    min-width: 0;
+    padding: 1.1rem 1.25rem;
+    background: #fff;
+    border: 1px solid var(--pl-border, #DDE3D6);
+    border-radius: 12px;
+}
+
+.pl-panel--wide { grid-column: 1 / -1; }
+
+.pl-panel h2 {
+    margin: 0 0 0.15rem;
+    font-family: var(--plx-serif, Georgia, serif);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.pl-panel-sub {
+    margin: 0 0 0.75rem;
+    font-size: 0.8rem;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+#progress-tiles { flex-wrap: wrap; margin: 1rem 0 0; }
+#progress-tiles .pl-stat { flex: 1 1 120px; }
+
+/* ---- SVG charts ----------------------------------------------------------- */
+
+.pl-chart-svg { display: block; width: 100%; height: auto; }
+.pl-chart-svg .pl-grid { stroke: var(--pl-border, #DDE3D6); stroke-width: 1; }
+.pl-chart-svg .pl-axis { font-size: 11px; fill: var(--pl-text-muted, #6B6A62); }
+.pl-chart-svg .pl-line { fill: none; stroke: var(--pl-green-mid, #2F6B4F); stroke-width: 2.5; stroke-linejoin: round; }
+.pl-chart-svg .pl-dot { fill: #fff; stroke: var(--pl-green-dark, #1F4E3D); stroke-width: 2.5; }
+.pl-seg-lessons { fill: var(--pl-green-dark, #1F4E3D); }
+.pl-seg-quizzes { fill: #C9A227; }
+.pl-seg-games { fill: #7FA98F; }
+
+.pl-legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin: 0.5rem 0 0; padding: 0; list-style: none; font-size: 0.78rem; color: var(--pl-text-muted, #6B6A62); }
+.pl-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; margin-right: 0.35rem; border-radius: 2px; vertical-align: -1px; }
+.pl-legend .k-lessons { background: var(--pl-green-dark, #1F4E3D); }
+.pl-legend .k-quizzes { background: #C9A227; }
+.pl-legend .k-games { background: #7FA98F; }
+
+/* ---- Horizontal bars ------------------------------------------------------- */
+
+.pl-hbars { margin: 0; padding: 0; list-style: none; }
+.pl-hbars li + li { margin-top: 0.85rem; }
+.pl-hbar-top { display: flex; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.3rem; font-size: 0.85rem; }
+.pl-hbar-label { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.pl-hbar-note { flex: none; color: var(--pl-text-muted, #6B6A62); font-size: 0.78rem; }
+.pl-hbar-track { height: 10px; background: var(--plx-track, #ECE9DC); border-radius: 999px; overflow: hidden; }
+.pl-hbar-fill { height: 100%; background: var(--pl-green-mid, #2F6B4F); border-radius: 999px; }
+
+/* ---- Messages ---------------------------------------------------------------- */
+
+.pl-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.pl-unread { padding: 0.1rem 0.55rem; font-size: 0.72rem; font-weight: 700; color: #fff; background: var(--pl-green-dark, #1F4E3D); border-radius: 999px; }
+
+.pl-message { padding: 0.8rem 0.9rem; border: 1px solid var(--pl-border, #DDE3D6); border-radius: 10px; }
+.pl-message + .pl-message { margin-top: 0.6rem; }
+.pl-message.is-unread { background: var(--pl-green-pale, #E7EFE6); border-color: var(--plx-matched-border, #A9C0AE); }
+.pl-message-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; font-size: 0.85rem; }
+.pl-message-when { margin-left: auto; font-size: 0.75rem; color: var(--pl-text-muted, #6B6A62); }
+.pl-message-body { margin: 0.4rem 0 0; font-size: 0.9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pl-message .btn { margin-top: 0.55rem; }
+
+.pl-empty-banner { margin-top: 1rem; padding: 0.8rem 1rem; font-size: 0.9rem; background: var(--pl-green-pale, #E7EFE6); border-radius: 10px; }
+
+@media (max-width: 767.98px) {
+    .pl-progress-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 575.98px) {
+    .pl-panel { padding: 0.9rem; }
+    #progress-tiles .pl-stat { flex-basis: calc(50% - 0.3rem); }
+}
