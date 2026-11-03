@@ -1,0 +1,698 @@
+/* ==========================================================================
+   Play & Learn: quiz and game pages (week 5)
+   Builds on assets/css/style.css (palette variables, header, buttons).
+   Load order: style.css first, then this file.
+   ========================================================================== */
+
+:root {
+    --plx-wrong: #A8402F;
+    --plx-wrong-pale: #F8E9E5;
+    --plx-code-bg: #F4F2EA;
+    --plx-track: #ECE9DC;
+    --plx-matched-bg: #E8EFE5;
+    --plx-matched-border: #A9C0AE;
+    --plx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace;
+    --plx-serif: Georgia, 'Times New Roman', serif;
+}
+
+.pl-narrow [hidden],
+#game-app [hidden] {
+    display: none !important;
+}
+
+.pl-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ---- Page frame ---------------------------------------------------------- */
+
+.pl-narrow {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.pl-back {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--pl-text-muted, #6B6A62);
+    text-decoration: none;
+}
+
+.pl-back:hover {
+    color: var(--pl-green-dark, #1F4E3D);
+    text-decoration: underline;
+}
+
+.pl-page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.pl-page-title {
+    margin: 0;
+    font-family: var(--plx-serif);
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--pl-text, #2B2B26);
+}
+
+.pl-page-sub {
+    margin: 0.25rem 0 0;
+    max-width: 34rem;
+    font-size: 0.85rem;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-page-meta {
+    font-size: 0.8rem;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-sample-badge {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    padding: 0.15rem 0.65rem;
+    font-size: 0.72rem;
+    color: #6B5410;
+    background: #FFF4D6;
+    border: 1px solid #EBD79A;
+    border-radius: 999px;
+}
+
+.pl-eyebrow {
+    margin: 0 0 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pl-green-dark, #1F4E3D);
+}
+
+.pl-eyebrow--muted {
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-panel {
+    padding: 1.5rem;
+    background: #fff;
+    border: 1px solid var(--pl-border, #DDE3D6);
+    border-radius: 12px;
+}
+
+.pl-panel:focus {
+    outline: none;
+}
+
+.pl-panel + .pl-panel {
+    margin-top: 1rem;
+}
+
+.pl-state {
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-state p {
+    margin: 0 0 1rem;
+}
+
+/* ---- Progress bar -------------------------------------------------------- */
+
+.pl-progress {
+    height: 6px;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    background: var(--plx-track);
+    border-radius: 999px;
+}
+
+.pl-progress-bar {
+    width: 0;
+    height: 100%;
+    background: var(--pl-green-dark, #1F4E3D);
+    transition: width 0.3s ease;
+}
+
+/* ---- Code ---------------------------------------------------------------- */
+
+.pl-code-block {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1rem;
+    overflow-x: auto;
+    font-family: var(--plx-mono);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    white-space: pre;
+    color: var(--pl-text, #2B2B26);
+    background: var(--plx-code-bg);
+    border-radius: 8px;
+}
+
+.pl-code-block code {
+    font: inherit;
+    color: inherit;
+    background: none;
+}
+
+/* ---- Quiz ---------------------------------------------------------------- */
+
+.pl-question-text {
+    margin: 0 0 1rem;
+    font-size: 0.98rem;
+    color: var(--pl-text, #2B2B26);
+}
+
+.pl-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.pl-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    font-family: var(--plx-mono);
+    font-size: 0.9rem;
+    text-align: left;
+    color: var(--pl-text, #2B2B26);
+    background: #fff;
+    border: 1px solid var(--pl-border, #DDE3D6);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s, opacity 0.15s;
+}
+
+.pl-option:hover:not(:disabled) {
+    background: #FBFAF5;
+    border-color: var(--pl-green-mid, #2F6B4F);
+}
+
+.pl-option:disabled {
+    cursor: default;
+    opacity: 1;
+    color: var(--pl-text, #2B2B26);
+}
+
+.pl-option.is-dim {
+    opacity: 0.6;
+}
+
+.pl-radio {
+    flex: 0 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-family: var(--plx-serif);
+    font-size: 0.7rem;
+    line-height: 1;
+    color: #fff;
+    border: 1.5px solid #BDBFB0;
+    border-radius: 50%;
+}
+
+.pl-option.is-correct {
+    background: var(--pl-green-pale, #E7EFE6);
+    border-color: var(--pl-green-dark, #1F4E3D);
+}
+
+.pl-option.is-correct .pl-radio {
+    background: var(--pl-green-dark, #1F4E3D);
+    border-color: var(--pl-green-dark, #1F4E3D);
+}
+
+.pl-option.is-correct .pl-radio::after {
+    content: '\2713';
+}
+
+.pl-option.is-wrong {
+    background: var(--plx-wrong-pale);
+    border-color: var(--plx-wrong);
+}
+
+.pl-option.is-wrong .pl-radio {
+    background: var(--plx-wrong);
+    border-color: var(--plx-wrong);
+}
+
+.pl-option.is-wrong .pl-radio::after {
+    content: '\2717';
+}
+
+/* ---- Action bar (feedback text + buttons), shared by quiz and games ------ */
+
+.pl-actionbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-top: 1.1rem;
+}
+
+.pl-game-actionbar {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--pl-border, #DDE3D6);
+}
+
+.pl-feedback {
+    flex: 1 1 14rem;
+    min-height: 1.3em;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-feedback.is-correct {
+    color: var(--pl-green-dark, #1F4E3D);
+}
+
+.pl-feedback.is-wrong {
+    color: var(--plx-wrong);
+}
+
+.pl-actions {
+    display: flex;
+    gap: 0.6rem;
+}
+
+/* ---- Results (quiz and games) -------------------------------------------- */
+
+.pl-results {
+    text-align: center;
+    padding: 2rem 1.5rem;
+}
+
+.pl-result-score {
+    margin: 0;
+    font-family: var(--plx-serif);
+    font-size: 3.2rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--pl-green-dark, #1F4E3D);
+}
+
+.pl-result-sub {
+    margin: 0.35rem 0 0;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-result-msg {
+    margin: 1rem 0 0;
+    font-size: 1.02rem;
+}
+
+.pl-save-status {
+    min-height: 1.3em;
+    margin: 1rem 0 0;
+    font-size: 0.82rem;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-save-status.is-error {
+    color: var(--plx-wrong);
+}
+
+.pl-save-status .btn {
+    margin-left: 0.5rem;
+}
+
+.pl-result-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+}
+
+.pl-result-stats {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.pl-review {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pl-review-item {
+    padding: 0.9rem 0;
+    border-top: 1px solid var(--pl-border, #DDE3D6);
+}
+
+.pl-review-item:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.pl-review-q {
+    margin: 0.35rem 0 0.4rem;
+    font-size: 0.92rem;
+}
+
+.pl-review-line {
+    margin: 0.15rem 0 0;
+    font-size: 0.85rem;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-review-line code {
+    font-family: var(--plx-mono);
+    font-size: 0.85em;
+    color: var(--pl-text, #2B2B26);
+}
+
+.pl-chip {
+    display: inline-block;
+    padding: 0.05rem 0.55rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 999px;
+}
+
+.pl-chip--correct {
+    color: var(--pl-green-dark, #1F4E3D);
+    background: var(--pl-green-pale, #E7EFE6);
+}
+
+.pl-chip--wrong {
+    color: var(--plx-wrong);
+    background: var(--plx-wrong-pale);
+}
+
+.pl-chip--skipped {
+    color: var(--pl-text-muted, #6B6A62);
+    background: var(--plx-track);
+}
+
+/* ---- Games: header stat boxes -------------------------------------------- */
+
+.pl-stats {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.pl-stat {
+    min-width: 76px;
+    padding: 0.45rem 1rem;
+    text-align: center;
+    background: #fff;
+    border: 1px solid var(--pl-border, #DDE3D6);
+    border-radius: 10px;
+}
+
+.pl-stat-label {
+    display: block;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-stat-value {
+    display: block;
+    font-family: var(--plx-serif);
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--pl-green-dark, #1F4E3D);
+}
+
+/* ---- Games: Match the Output --------------------------------------------- */
+
+.pl-match {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.pl-col-label {
+    margin: 0 0 0.6rem;
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.pl-pick {
+    display: block;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    overflow-x: auto;
+    font-family: var(--plx-mono);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    text-align: left;
+    white-space: pre;
+    color: var(--pl-text, #2B2B26);
+    background: #fff;
+    border: 1px solid var(--pl-border, #DDE3D6);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+}
+
+.pl-pick code {
+    font: inherit;
+    color: inherit;
+}
+
+.pl-pick:hover:not(:disabled) {
+    border-color: var(--pl-green-mid, #2F6B4F);
+}
+
+.pl-pick.is-selected {
+    background: var(--pl-green-pale, #E7EFE6);
+    border-color: var(--pl-green-dark, #1F4E3D);
+    box-shadow: 0 0 0 2px rgba(31, 78, 61, 0.15);
+}
+
+.pl-pick.is-matched {
+    color: #6E7D71;
+    cursor: default;
+    background: var(--plx-matched-bg);
+    border-color: var(--plx-matched-border);
+}
+
+.pl-pick.is-wrong {
+    background: var(--plx-wrong-pale);
+    border-color: var(--plx-wrong);
+    animation: pl-shake 0.35s;
+}
+
+/* ---- Games: Memory Match ------------------------------------------------- */
+
+.pl-memory {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.pl-memory-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 92px;
+    padding: 0.5rem;
+    font-family: var(--plx-serif);
+    font-size: 1.6rem;
+    line-height: 1.25;
+    text-align: center;
+    color: #F4F1E4;
+    background: var(--pl-green-dark, #1F4E3D);
+    border: 1px solid var(--pl-green-dark, #1F4E3D);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.pl-memory-card:hover:not(:disabled):not(.is-flipped) {
+    background: var(--pl-green-mid, #2F6B4F);
+    transform: translateY(-2px);
+}
+
+.pl-memory-card.is-flipped {
+    font-family: var(--pl-font-body, 'Segoe UI', system-ui, sans-serif);
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--pl-text, #2B2B26);
+    background: #fff;
+    border-color: var(--pl-green-mid, #2F6B4F);
+}
+
+.pl-memory-card.is-flipped[data-kind='a'] {
+    font-family: var(--plx-mono);
+    font-size: 1rem;
+}
+
+.pl-memory-card.is-matched {
+    color: #6E7D71;
+    cursor: default;
+    background: var(--plx-matched-bg);
+    border-color: var(--plx-matched-border);
+}
+
+.pl-memory-card.is-wrong {
+    background: var(--plx-wrong-pale);
+    border-color: var(--plx-wrong);
+    animation: pl-shake 0.35s;
+}
+
+/* ---- Game and quiz lists (launcher pages) -------------------------------- */
+
+.pl-list-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.25rem;
+    background: #fff;
+    border: 1px solid var(--pl-border, #DDE3D6);
+    border-radius: 12px;
+}
+
+.pl-list-card h2 {
+    margin: 0 0 0.4rem;
+    font-family: var(--plx-serif);
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.pl-list-card p {
+    flex: 1 1 auto;
+    margin: 0 0 1rem;
+    font-size: 0.88rem;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+.pl-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.pl-quiz-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pl-quiz-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--pl-border, #DDE3D6);
+}
+
+.pl-quiz-list li:first-child {
+    border-top: 0;
+}
+
+.pl-quiz-list .pl-quiz-lesson {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--pl-text-muted, #6B6A62);
+}
+
+/* ---- Focus, motion, small screens ---------------------------------------- */
+
+.pl-option:focus-visible,
+.pl-pick:focus-visible,
+.pl-memory-card:focus-visible,
+.pl-back:focus-visible {
+    outline: 3px solid rgba(47, 107, 79, 0.45);
+    outline-offset: 2px;
+}
+
+@keyframes pl-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pl-progress-bar,
+    .pl-option,
+    .pl-pick,
+    .pl-memory-card {
+        transition: none;
+    }
+
+    .pl-pick.is-wrong,
+    .pl-memory-card.is-wrong {
+        animation: none;
+    }
+
+    .pl-memory-card:hover:not(:disabled):not(.is-flipped) {
+        transform: none;
+    }
+}
+
+@media (max-width: 575px) {
+    .pl-page-title {
+        font-size: 1.35rem;
+    }
+
+    .pl-panel {
+        padding: 1.1rem;
+    }
+
+    .pl-match {
+        gap: 0.75rem;
+    }
+
+    .pl-pick {
+        padding: 0.7rem 0.6rem;
+        font-size: 0.75rem;
+    }
+
+    .pl-memory {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+
+    .pl-memory-card {
+        min-height: 84px;
+    }
+
+    .pl-result-score {
+        font-size: 2.6rem;
+    }
+}
