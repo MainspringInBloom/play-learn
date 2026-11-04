@@ -7,15 +7,18 @@ progress) — built around two demo courses, Python 101 and Java 101.
 **Stack:** HTML, CSS, JavaScript, jQuery, Bootstrap (frontend) · PHP
 (backend) · MySQL (database)
 
-## Status: week 3 complete
+## Status: week 6 frontend/backend complete
 
 - Login/session logic for all 3 roles
 - Admin CRUD (add/view/edit/delete) for lessons and quizzes
 - Student dashboard shell, wired to real course/lesson data
+- Matching game and quiz page
+- Progress page charts
 
-Not yet built (weeks 4–8, per the project plan): course content loaded
-for both courses, the matching game, quiz-taking with scoring, the
-scores/progress tables, and the progress charts.
+Not yet built: complete sample lessons for Java and Python
+API endpoints the game/quiz pages call to save scores.
+Admin/Parent feedback message logic.
+Parent dashboard.
 
 
 ## Setup
@@ -31,6 +34,7 @@ scores/progress tables, and the progress charts.
    mysql -u root -p play_and_learn < database/week3_updates.sql
    mysql -u root -p play_and_learn < database/week4_java101_lessons.sql
    mysql -u root -p play_and_learn < database/week5_scores_schema.sql
+   mysql -u root -p play_and_learn < database/week6_feedback_schema.sql
    ```
 
 3. **Set your DB password** in `config/db.php` (`DB_PASS`).
@@ -53,11 +57,6 @@ it and are certain the placeholder is still there.
 
 ## Current known gaps and placeholders
 
-- **Dashboard stats and activity feed.** 
-  "Lessons completed," "quiz average," "games played," and recent activity all show
-  `—` or a stub message — there's no `scores`/progress table yet (weeks
-  5–6 per the schedule). Structure is already wired so swapping in real
-  queries later is a drop-in change.
 - **No student↔course enrollment table yet.** The dashboard shows the
   first course in the table rather than an enrolled one.
 - **Courses are read-only in Admin.** CRUD thus far covers lessons and
