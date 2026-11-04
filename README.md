@@ -30,6 +30,7 @@ scores/progress tables, and the progress charts.
    mysql -u root -p < database/schema.sql
    mysql -u root -p play_and_learn < database/week3_updates.sql
    mysql -u root -p play_and_learn < database/week4_java101_lessons.sql
+   mysql -u root -p play_and_learn < database/week5_scores_schema.sql
    ```
 
 3. **Set your DB password** in `config/db.php` (`DB_PASS`).
