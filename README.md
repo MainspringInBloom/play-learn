@@ -15,7 +15,7 @@ progress) — built around two demo courses, Python 101 and Java 101.
 - Matching game and quiz page
 - Progress page charts
 
-Not yet built: complete sample lessons for Java and Python
+Not yet built: complete sample lessons for Java and Python.
 API endpoints the game/quiz pages call to save scores.
 Admin/Parent feedback message logic.
 Parent dashboard.
