@@ -1,9 +1,12 @@
 /**
- * API seam for the student quiz, game and progress pages (weeks 5-6: PLACEHOLDERS).
+ * API seam for the student, parent and admin pages (weeks 5-7: PLACEHOLDERS).
  *
  * Every call the pages make to the server goes through PL.api, and nothing else
  * in the frontend talks to the backend. Right now each method returns sample
- * data from pl-sample-data.js, so the pages work without the API.
+ * data from the pl-sample-*.js files, so the pages work without the API.
+ * Who is logged in is read from PL.viewer ({ user_id, role, first_name }), which each
+ * page sets from the PHP session. Only the placeholders use it; the real server
+ * always takes the user from the session.
  *
  * TO CONNECT THE REAL API, for each method below:
  *   1. replace the body with the code in its "TODO(API)" comment,
@@ -20,6 +23,8 @@
  *     ?demo=fail-save  saving a score fails
  *     ?demo=fail-feedback  loading messages fails (progress page)
  *     (progress page also: ?demo=empty = a brand new student with no activity)
+ *     Parent/admin pages: ?demo=empty (no children / no students), fail-load, fail-feedback,
+ *     fail-save (sending a message, adding/removing a person or link fails)
  */
 (function (global, $) {
     'use strict';
@@ -154,22 +159,28 @@
         },
 
         /**
-         * Everything the Progress page charts, in one call, for the logged-in student.
+         * Everything the Progress page charts, for ONE student.
+         *   getProgress()           the logged-in student's own (student pages)
+         *   getProgress(studentId)  a linked child (parent) or any student (admin)
          * Resolves with:
-         *   { totals:{ lessons_completed, total_lessons, quizzes_taken, quiz_average|null,
+         *   { student:{ student_id, first_name, last_name, email },
+         *     totals:{ lessons_completed, total_lessons, quizzes_taken, quiz_average|null,
          *              games_played, time_spent_seconds },
          *     quiz_scores:    [{ attempt_id, quiz_title, score, finished_at }]  oldest first, last 20
          *     daily_activity: [{ date:'YYYY-MM-DD', lessons, quizzes, games }]  last 14 days (gaps ok)
          *     courses:        [{ course_id, title, completed_lessons, total_lessons }]
          *     game_scores:    [{ lesson_title, game_label, score, max_score, completed_at }]  newest first, last 6 }
-         * See FRONTEND_WEEK6.md for the suggested SQL behind each part.
+         * The server must refuse (403) a parent asking for a student who is not linked to
+         * them. See FRONTEND_WEEK7.md for the rules and suggested SQL.
          */
-        getProgress: function () {
+        getProgress: function (studentId) {
             // TODO(API): replace this body with
-            //   return request('GET', '/api/get_progress.php').then((res) => res);
-            //   (endpoint does not exist yet; contract above, queries in FRONTEND_WEEK6.md)
+            //   return request('GET', '/api/get_progress.php', studentId ? { student_id: studentId } : undefined);
             if (this.demoMode === 'fail-load') {
                 return failLater('Could not reach the server.');
+            }
+            if (studentId !== undefined && studentId !== null) {
+                return attempt(() => PL.sample.server.progress(studentId));
             }
             const data = clone(PL.sample.progress);
             if (this.demoMode === 'empty') {
@@ -184,21 +195,26 @@
         },
 
         /**
-         * Messages sent to this student by an admin or parent (newest first).
+         * Messages about a student, newest first.
+         *   getFeedback()           the logged-in student's own inbox (student pages)
+         *   getFeedback(studentId)  the thread about that student (parent: linked child, admin: any)
          * Resolves with { messages: [{ message_id, sender_name, sender_role:'admin'|'parent',
-         *                              body, created_at, read_at|null }] }
-         * The sending side and the endpoint belong to the messaging task.
+         *                              body, created_at, read_at|null, is_mine? }] }
+         * is_mine (parent/admin views) is true for messages the logged-in user wrote.
          */
-        getFeedback: function () {
+        getFeedback: function (studentId) {
             // TODO(API): replace this body with
-            //   return request('GET', '/api/get_feedback.php');
+            //   return request('GET', '/api/get_feedback.php', studentId ? { student_id: studentId } : undefined);
             if (this.demoMode === 'fail-feedback') {
                 return failLater('Could not reach the server.');
+            }
+            if (studentId !== undefined && studentId !== null) {
+                return attempt(() => PL.sample.server.feedback(studentId));
             }
             return later({ messages: this.demoMode === 'empty' ? [] : clone(PL.sample.feedback) });
         },
 
-        /** Mark one message read. Resolves with { ok: true }. */
+        /** Mark one message read (student pages). Resolves with { ok: true }. */
         markFeedbackRead: function (messageId) {
             // TODO(API): replace this body with
             //   return request('POST', '/api/mark_feedback_read.php', { message_id: messageId });
@@ -208,5 +224,132 @@
             }
             return later({ ok: true });
         },
+
+        /**
+         * Send a message to a student. The sender is always the logged-in user (never
+         * sent by the browser). Admin: any student. Parent: only their own children (403
+         * otherwise). Body: 1 to 2000 characters.
+         * Resolves with { message: { message_id, sender_name, sender_role, body, created_at,
+         *                            read_at: null, is_mine: true } }
+         */
+        sendFeedback: function (payload) {
+            // TODO(API): replace this body with
+            //   return request('POST', '/api/send_feedback.php', { student_id: payload.studentId, body: payload.body });
+            if (this.demoMode === 'fail-save') {
+                return failLater('Could not reach the server.');
+            }
+            return attempt(() => PL.sample.server.send(payload.studentId, payload.body));
+        },
+
+        /**
+         * PARENT: the logged-in parent's linked children, each with a short summary.
+         * Resolves with { children: [{ student_id, first_name, last_name,
+         *   lessons_completed, total_lessons, quiz_average|null, games_played, last_active_at|null }] }
+         */
+        getChildren: function () {
+            // TODO(API): replace this body with
+            //   return request('GET', '/api/get_children.php');
+            if (this.demoMode === 'fail-load') {
+                return failLater('Could not reach the server.');
+            }
+            if (this.demoMode === 'empty') {
+                return later({ children: [] });
+            }
+            return attempt(() => PL.sample.server.children());
+        },
+
+        /**
+         * ADMIN: every enrolled student with summary stats and their parents.
+         * Resolves with { students: [{ student_id, first_name, last_name, email,
+         *   lessons_completed, total_lessons, quiz_average|null, games_played, time_spent_seconds,
+         *   last_active_at|null, parents: [{ user_id, name }] }] }
+         */
+        getStudentsOverview: function () {
+            // TODO(API): replace this body with
+            //   return request('GET', '/api/admin/get_students_overview.php');
+            if (this.demoMode === 'fail-load') {
+                return failLater('Could not reach the server.');
+            }
+            if (this.demoMode === 'empty') {
+                return later({ students: [] });
+            }
+            return attempt(() => PL.sample.server.overview());
+        },
+
+        /**
+         * ADMIN: all students or all parents, each with who they are linked to.
+         * Resolves with { users: [{ user_id, role, first_name, last_name, email, created_at,
+         *                           links: [{ user_id, name }] }] }
+         * (a parent's links are their children; a student's links are their parents)
+         */
+        getUsers: function (role) {
+            // TODO(API): replace this body with
+            //   return request('GET', '/api/admin/get_users.php', { role: role });
+            if (this.demoMode === 'fail-load') {
+                return failLater('Could not reach the server.');
+            }
+            if (this.demoMode === 'empty') {
+                return later({ users: [] });
+            }
+            return attempt(() => PL.sample.server.users(role));
+        },
+
+        /**
+         * ADMIN: create a student or parent account. The server hashes the password
+         * (password_hash) and rejects a duplicate email with 409.
+         * payload: { role:'student'|'parent', first_name, last_name, email, password }
+         * Resolves with { user: { ...same shape as getUsers rows, links: [] } }
+         */
+        createUser: function (payload) {
+            // TODO(API): replace this body with
+            //   return request('POST', '/api/admin/create_user.php', payload);
+            if (this.demoMode === 'fail-save') {
+                return failLater('Could not reach the server.');
+            }
+            return attempt(() => PL.sample.server.createUser(payload));
+        },
+
+        /**
+         * ADMIN: remove a student or parent (never an admin). Also removes their links, and for
+         * a student their scores and progress; for a parent the messages they sent.
+         * Resolves with { ok: true }.
+         */
+        deleteUser: function (userId) {
+            // TODO(API): replace this body with
+            //   return request('POST', '/api/admin/delete_user.php', { user_id: userId });
+            if (this.demoMode === 'fail-save') {
+                return failLater('Could not reach the server.');
+            }
+            return attempt(() => PL.sample.server.deleteUser(userId));
+        },
+
+        /** ADMIN: link a parent to a student (a row in parent_students). Resolves with { ok: true }. */
+        addLink: function (parentId, studentId) {
+            // TODO(API): replace this body with
+            //   return request('POST', '/api/admin/add_link.php', { parent_id: parentId, student_id: studentId });
+            if (this.demoMode === 'fail-save') {
+                return failLater('Could not reach the server.');
+            }
+            return attempt(() => PL.sample.server.addLink(parentId, studentId));
+        },
+
+        /** ADMIN: remove one parent/child link. Resolves with { ok: true }. */
+        removeLink: function (parentId, studentId) {
+            // TODO(API): replace this body with
+            //   return request('POST', '/api/admin/remove_link.php', { parent_id: parentId, student_id: studentId });
+            if (this.demoMode === 'fail-save') {
+                return failLater('Could not reach the server.');
+            }
+            return attempt(() => PL.sample.server.removeLink(parentId, studentId));
+        },
     };
+
+    /** Runs a sample "server" function and turns a thrown Error into a rejected promise. */
+    function attempt(fn) {
+        try {
+            return later(fn());
+        } catch (e) {
+            return failLater(e.message);
+        }
+    }
 })(window, window.jQuery);
