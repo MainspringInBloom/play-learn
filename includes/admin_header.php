@@ -1,5 +1,10 @@
 <?php
+/**
+ * Header/nav for admin pages.
+ * Expects (optionally) $page_title and $active_nav = 'courses' | 'students' | 'users' | 'links'.
+ */
 $user = function_exists('current_user') ? current_user() : ['first_name' => null];
+$active_nav = $active_nav ?? '';
 ?>
 <!doctype html>
 <html lang="en">
@@ -15,7 +20,10 @@ $user = function_exists('current_user') ? current_user() : ['first_name' => null
     <div class="pl-header-inner">
         <a class="pl-logo" href="/admin/index.php">Play &amp; Learn <span class="pl-admin-tag">Admin</span></a>
         <nav class="pl-nav">
-            <a href="/admin/index.php">Courses</a>
+            <a href="/admin/index.php" class="<?= $active_nav === 'courses' ? 'active' : '' ?>">Courses</a>
+            <a href="/admin/students.php" class="<?= $active_nav === 'students' ? 'active' : '' ?>">Students</a>
+            <a href="/admin/users.php" class="<?= $active_nav === 'users' ? 'active' : '' ?>">Users</a>
+            <a href="/admin/links.php" class="<?= $active_nav === 'links' ? 'active' : '' ?>">Family links</a>
         </nav>
         <div class="pl-user">
             <span class="pl-avatar"><?= htmlspecialchars(strtoupper(substr($user['first_name'] ?? '?', 0, 1))) ?></span>
