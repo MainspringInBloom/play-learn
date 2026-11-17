@@ -97,19 +97,26 @@
          *
          * Resolves with { ok, attempt_id, score, correct_count, total_questions, results }.
          */
-        saveQuizScore: function (payload) {
-            // TODO(API): replace this body with
-            //   return request('POST', '/api/save_quiz_score.php', {
-            //       quiz_id: payload.quizId,
-            //       time_spent_seconds: payload.timeSpentSeconds,
-            //       answers: payload.answers,
-            //   });
-            void payload;
-            if (this.demoMode === 'fail-save') {
-                return failLater('Could not reach the server.');
-            }
-            return later({ ok: true, placeholder: true });
+        
+saveQuizScore: function (payload) {
+    return fetch('/play-learn/api/save_quiz_score.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
         },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+    })
+    .then(async function (response) {
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+            throw new Error(data.error || 'Unable to save quiz score');
+        }
+
+        return data;
+    });
+},
 
         /**
          * Load the data for one game.
