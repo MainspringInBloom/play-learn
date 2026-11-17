@@ -7,7 +7,7 @@
 const DB_HOST = '127.0.0.1';
 const DB_NAME = 'play_and_learn';
 const DB_USER = 'root';
-const DB_PASS = 'Tr33r00t4115';
+const DB_PASS = 'REPLACE_WITH_YOUR_MYSQL_PASSWORD';
 const DB_CHARSET = 'utf8mb4';
 
 $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
