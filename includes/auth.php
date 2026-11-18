@@ -46,11 +46,12 @@ function current_user(): array
 /** Redirect a freshly logged-in user to the right dashboard for their role. */
 function redirect_for_role(string $role): void
 {
-    $destinations = [
-        'admin'   => '/admin/index.php',
-        'student' => '/student/dashboard.php',
-        'parent'  => '/parent/dashboard.php', // built in a later week
-    ];
-    header('Location: ' . ($destinations[$role] ?? '/play-learn/play-learn/play-learn/login.php'));
+   $destinations = [
+    'admin'   => '/play-learn/admin/index.php',
+    'student' => '/play-learn/student/dashboard.php',
+    'parent'  => '/play-learn/parent/dashboard.php',
+];
+
+header('Location: ' . ($destinations[$role] ?? '/play-learn/login.php'));
     exit;
 }

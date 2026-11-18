@@ -168,48 +168,30 @@ $(function () {
             return;
         }
         state.locked = true;
-        state.answers[state.index] = {
-            question_id: question.question_id,
-            option_id: chosen.option_id,
-            is_correct: chosen.is_correct === true,
-            skipped: false,
-        };
+       state.answers[state.index] = {
+    question_id: question.question_id,
+    option_id: chosen.option_id,
+    is_correct: null,
+    skipped: false
+};
 
-        // Reveal the result: mark the chosen option, and always show the right one.
-        $stage.find('.pl-option').each(function () {
-            const $button = $(this);
-            const id = parseInt($button.attr('data-option-id'), 10);
-            const option = question.options.find(function (o) {
-                return o.option_id === id;
-            });
-            $button.prop('disabled', true);
-            if (option.is_correct) {
-                $button.addClass('is-correct').append(el('span', 'pl-sr-only', ' (correct answer)'));
-            } else if (id === chosen.option_id) {
-                $button.addClass('is-wrong').append(el('span', 'pl-sr-only', ' (your answer, incorrect)'));
-            } else {
-                $button.addClass('is-dim');
-            }
-        });
+        // Record the selection without revealing the correct answer.
+$stage.find('.pl-option').each(function () {
+    const $button = $(this);
+    const id = parseInt($button.attr('data-option-id'), 10);
 
-        const correctOption = question.options.find(function (o) {
-            return o.is_correct;
-        });
-        let message;
-        if (chosen.is_correct) {
-            message = 'Correct. ' + (question.explanation || '');
-        } else {
-            message =
-                'Not quite.' +
-                (correctOption ? ' The answer is “' + correctOption.option_text + '”.' : '') +
-                (question.explanation ? ' ' + question.explanation : '');
-        }
-        $('#quiz-feedback')
-            .text(message.trim())
-            .removeClass('is-correct is-wrong')
-            .addClass(chosen.is_correct ? 'is-correct' : 'is-wrong');
+    $button.prop('disabled', true);
 
-        $('#quiz-skip').prop('hidden', true);
+    if (id === chosen.option_id) {
+        $button.addClass('is-selected');
+    } else {
+        $button.addClass('is-dim');
+    }
+});
+
+$('#quiz-feedback')
+    .text('Answer recorded. Your results will appear after submission.')
+    .removeClass('is-correct is-wrong');
         $('#quiz-next').prop('hidden', false).trigger('focus');
     }
 
@@ -331,7 +313,7 @@ $(function () {
         quiz.questions.forEach(function (question, i) {
             const record = state.answers[i];
             const correctOption = question.options.find(function (o) {
-                return o.is_correct;
+                return o.is_correct === true || o.is_correct === 1 || o.is_correct === "1";
             });
             const chosen = record && record.option_id !== null
                 ? question.options.find(function (o) {
@@ -340,25 +322,31 @@ $(function () {
                 : null;
 
             let chipClass = 'pl-chip pl-chip--skipped';
-            let chipText = 'Skipped';
-            if (chosen) {
-                chipClass = 'pl-chip ' + (record.is_correct ? 'pl-chip--correct' : 'pl-chip--wrong');
-                chipText = record.is_correct ? 'Correct' : 'Incorrect';
-            }
+let chipText = 'Skipped';
+
+if (chosen) {
+    chipClass = 'pl-chip';
+    chipText = 'Answered';
+}
 
             const $item = el('li', 'pl-review-item');
             $item.append(el('span', chipClass, chipText), el('p', 'pl-review-q', question.question_text));
-            if (chosen && !record.is_correct) {
-                $item.append(el('p', 'pl-review-line', 'Your answer: ').append(el('code', '', chosen.option_text)));
-            }
-            if (correctOption && !(chosen && record.is_correct)) {
-                $item.append(el('p', 'pl-review-line', 'Correct answer: ').append(el('code', '', correctOption.option_text)));
-            }
-            if (question.explanation) {
-                $item.append(el('p', 'pl-review-line', question.explanation));
-            }
-            $list.append($item);
-        });
+
+if (chosen) {
+    $item.append(
+        el('p', 'pl-review-line', 'Your answer: ')
+            .append(el('code', '', chosen.option_text))
+    );
+}
+
+if (question.explanation) {
+    $item.append(el('p', 'pl-review-line', question.explanation));
+}
+
+$list.append($item);
+
+
+});
 
         return el('section', 'pl-panel').append(el('h2', 'pl-eyebrow pl-eyebrow--muted', 'Review'), $list);
     }
@@ -401,17 +389,21 @@ $(function () {
                     return;
                 }
                 // The server grades the quiz itself, so show its numbers if it sent them.
-                if (response && typeof response.score === 'number') {
-                    paintSummary({
-                        correct: response.correct_count,
-                        total: response.total_questions,
-                        skipped: Math.max(0, response.total_questions - response.correct_count - countWrong()),
-                        percent: Math.round(response.score),
-                    });
-                }
-                setSaveStatus('Score saved.');
-            })
-            .catch(function (error) {
+                
+if (response && typeof response.score === 'number') {
+    paintSummary({
+        correct: response.correct_count,
+        total: response.total_questions,
+        skipped: Math.max(0, response.total_questions - response.correct_count - countWrong()),
+        percent: Math.round(response.score),
+    });
+
+    $('#quiz-result-msg').text(encouragement(Math.round(response.score)));
+}
+
+  setSaveStatus('Score saved.');
+  })
+ .catch(function (error) {
                 console.error(error);
                 if (state.view === 'results') {
                     setSaveStatus("We couldn't save your score.", 'error', save);

@@ -61,7 +61,7 @@
 
     PL.api = {
         /** true while the methods below still return sample data. */
-        placeholder: true,
+        placeholder: false,
 
         /** Current ?demo= value; the placeholders read it on every call. */
         demoMode: demoFromUrl,
@@ -73,20 +73,24 @@
          *     questions: [{ question_id, question_text, code_snippet, explanation,
          *                   sort_order, options: [{ option_id, option_text, is_correct }] }] }
          */
-        getQuiz: function (quizId) {
-            // TODO(API): replace this body with
-            //   return request('GET', '/api/get_quiz.php', { quiz_id: quizId })
-            //       .then((res) => res.quiz);
-            if (this.demoMode === 'fail-load') {
-                return failLater('Could not reach the server.');
-            }
-            const quiz = clone(PL.sample.quiz);
-            quiz.quiz_id = quizId;
-            if (this.demoMode === 'empty') {
-                quiz.questions = [];
-            }
-            return later(quiz);
-        },
+        
+getQuiz: function (quizId) {
+return fetch('/play-learn/api/get_quiz.php?quiz_id=' + encodeURIComponent(quizId), {        credentials: 'same-origin'
+    })
+    .then(function (response) {
+        if (!response.ok) {
+            throw new Error('Unable to load quiz');
+        }
+        return response.json();
+    })
+    .then(function (data) {
+        if (!data.ok || !data.quiz) {
+            throw new Error(data.error || 'Quiz not found');
+        }
+        return data.quiz;
+    });
+},
+
 
         /**
          * Save a finished quiz attempt. The server grades the answers itself and
