@@ -18,7 +18,7 @@ function is_logged_in(): bool
 function require_login(): void
 {
     if (!is_logged_in()) {
-    header('Location: /play-learn/login.php');
+    header('Location: /login.php');
         exit;
     }
 }
@@ -29,7 +29,7 @@ function require_role(string $role): void
     if ($_SESSION['role'] !== $role) {
         http_response_code(403);
         echo '<p>Access denied — this page is for ' . htmlspecialchars($role) . ' accounts only.</p>';
-        echo '<p><a href="/play-learn/login.php">Back to login</a></p>';
+        echo '<p><a href="/login.php">Back to login</a></p>';
         exit;
     }
 }
@@ -47,11 +47,11 @@ function current_user(): array
 function redirect_for_role(string $role): void
 {
    $destinations = [
-    'admin'   => '/play-learn/admin/index.php',
-    'student' => '/play-learn/student/dashboard.php',
-    'parent'  => '/play-learn/parent/dashboard.php',
+    'admin'   => '/admin/index.php',
+    'student' => '/student/dashboard.php',
+    'parent'  => '/parent/dashboard.php',
 ];
 
-header('Location: ' . ($destinations[$role] ?? '/play-learn/login.php'));
+header('Location: ' . ($destinations[$role] ?? '/login.php'));
     exit;
 }

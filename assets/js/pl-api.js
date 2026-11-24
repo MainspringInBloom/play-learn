@@ -62,7 +62,6 @@
                 });
         });
     }
-    void request; // referenced here only so linters don't flag it while unused
 
     PL.api = {
         /** true while the methods below still return sample data. */
@@ -80,22 +79,15 @@
          */
         
 getQuiz: function (quizId) {
-return fetch('/play-learn/api/get_quiz.php?quiz_id=' + encodeURIComponent(quizId), {        credentials: 'same-origin'
-    })
-    .then(function (response) {
-        if (!response.ok) {
-            throw new Error('Unable to load quiz');
-        }
-        return response.json();
-    })
-    .then(function (data) {
-        if (!data.ok || !data.quiz) {
-            throw new Error(data.error || 'Quiz not found');
-        }
-        return data.quiz;
-    });
-},
-
+            // Root-relative path: works when the site is served from the project root
+            // (php -S localhost:8000). The server never sends is_correct to the browser.
+            return request('GET', '/api/get_quiz.php', { quiz_id: quizId }).then(function (res) {
+                if (!res || !res.ok || !res.quiz) {
+                    throw new Error((res && res.error) || 'Quiz not found');
+                }
+                return res.quiz;
+            });
+        },
 
         /**
          * Save a finished quiz attempt. The server grades the answers itself and
@@ -104,28 +96,17 @@ return fetch('/play-learn/api/get_quiz.php?quiz_id=' + encodeURIComponent(quizId
          *   payload = { quizId, timeSpentSeconds, answers: [{ question_id, option_id }] }
          *   (skipped questions are simply left out of `answers`)
          *
-         * Resolves with { ok, attempt_id, score, correct_count, total_questions, results }.
+         * Resolves with { ok, attempt_id, score, correct_count, total_questions,
+         *   results: [{ question_id, selected_option_id, correct_option_id, is_correct }] }.
          */
-        
-saveQuizScore: function (payload) {
-    return fetch('/play-learn/api/save_quiz_score.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
+        saveQuizScore: function (payload) {
+            return request('POST', '/api/save_quiz_score.php', payload).then(function (res) {
+                if (!res || !res.ok) {
+                    throw new Error((res && res.error) || 'Unable to save quiz score');
+                }
+                return res;
+            });
         },
-        credentials: 'same-origin',
-        body: JSON.stringify(payload)
-    })
-    .then(async function (response) {
-        const data = await response.json();
-
-        if (!response.ok || !data.ok) {
-            throw new Error(data.error || 'Unable to save quiz score');
-        }
-
-        return data;
-    });
-},
 
         /**
          * Load the data for one game.

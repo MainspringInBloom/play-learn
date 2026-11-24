@@ -1,4 +1,3 @@
-
 <?php
 header('Content-Type: application/json');
 
@@ -47,10 +46,14 @@ try {
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $questions = [];
+    $correctOption = [];
     foreach ($rows as $row) {
         $qid = (int) $row['question_id'];
         $oid = (int) $row['option_id'];
         $questions[$qid][$oid] = (bool) $row['is_correct'];
+        if ($row['is_correct']) {
+            $correctOption[$qid] = $oid;
+        }
     }
 
     if (!$questions) {
@@ -106,12 +109,25 @@ try {
 
     $pdo->commit();
 
+    // Per-question results so the page can show what was right (only after submitting).
+    $results = [];
+    foreach (array_keys($questions) as $qid) {
+        $picked = $selected[$qid] ?? null;
+        $results[] = [
+            'question_id'        => $qid,
+            'selected_option_id' => $picked,
+            'correct_option_id'  => $correctOption[$qid] ?? null,
+            'is_correct'         => $picked !== null && $questions[$qid][$picked],
+        ];
+    }
+
     respond(200, [
         'ok' => true,
         'attempt_id' => $attemptId,
         'score' => $score,
         'correct_count' => $correct,
-        'total_questions' => $total
+        'total_questions' => $total,
+        'results' => $results
     ]);
 
 } catch (Throwable $e) {

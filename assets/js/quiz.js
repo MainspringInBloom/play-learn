@@ -239,22 +239,13 @@ $('#quiz-feedback')
     // ---- Results ------------------------------------------------------------
 
     function summarize() {
+        // The browser does not know which options are correct (the server grades),
+        // so this is only a provisional summary until the server responds.
         const total = quiz.questions.length;
-        let correct = 0;
-        let skipped = 0;
-        state.answers.forEach(function (a) {
-            if (a && a.skipped) {
-                skipped += 1;
-            } else if (a && a.is_correct) {
-                correct += 1;
-            }
-        });
-        return {
-            correct: correct,
-            total: total,
-            skipped: skipped,
-            percent: total > 0 ? Math.round((correct / total) * 100) : 0,
-        };
+        const skipped = state.answers.filter(function (a) {
+            return a && a.skipped;
+        }).length;
+        return { correct: 0, total: total, skipped: skipped, percent: 0, provisional: true };
     }
 
     function encouragement(percent) {
@@ -280,7 +271,7 @@ $('#quiz-feedback')
 
         const $score = el('p', 'pl-result-score', summary.percent + '%').attr('id', 'quiz-result-score');
         const $sub = el('p', 'pl-result-sub').attr('id', 'quiz-result-sub');
-        const $message = el('p', 'pl-result-msg', encouragement(summary.percent));
+        const $message = el('p', 'pl-result-msg', encouragement(summary.percent)).attr('id', 'quiz-result-msg');
         const $save = el('p', 'pl-save-status').attr({ id: 'quiz-save-status', role: 'status', 'aria-live': 'polite' });
         const $retake = el('button', 'btn btn-pl-primary', 'Retake quiz').attr('type', 'button').on('click', startAttempt);
         const $actions = el('div', 'pl-result-actions').append($retake);
@@ -299,12 +290,12 @@ $('#quiz-feedback')
 
     /** Fills in the "2 of 4 correct" line; called again if the server returns its own numbers. */
     function paintSummary(summary) {
-        const parts = [summary.correct + ' of ' + summary.total + ' correct'];
+        const parts = [summary.provisional ? 'Grading…' : summary.correct + ' of ' + summary.total + ' correct'];
         if (summary.skipped > 0) {
             parts.push(summary.skipped + ' skipped');
         }
         parts.push(PL.util.formatDuration(state.seconds));
-        $('#quiz-result-score').text(summary.percent + '%');
+        $('#quiz-result-score').text(summary.provisional ? '…' : summary.percent + '%');
         $('#quiz-result-sub').text(parts.join(' · '));
     }
 
@@ -388,21 +379,23 @@ $list.append($item);
                     setSaveStatus('Sample mode: this score was not saved.');
                     return;
                 }
-                // The server grades the quiz itself, so show its numbers if it sent them.
-                
-if (response && typeof response.score === 'number') {
-    paintSummary({
-        correct: response.correct_count,
-        total: response.total_questions,
-        skipped: Math.max(0, response.total_questions - response.correct_count - countWrong()),
-        percent: Math.round(response.score),
-    });
+                // The server grades the quiz itself, so show its numbers.
+                if (response && typeof response.score === 'number') {
+                    const skipped = state.answers.filter(function (a) {
+                        return a && a.skipped;
+                    }).length;
+                    paintSummary({
+                        correct: response.correct_count,
+                        total: response.total_questions,
+                        skipped: skipped,
+                        percent: Math.round(response.score),
+                    });
+                    $('#quiz-result-msg').text(encouragement(Math.round(response.score)));
+                    applyResults(response.results);
+                }
 
-    $('#quiz-result-msg').text(encouragement(Math.round(response.score)));
-}
-
-  setSaveStatus('Score saved.');
-  })
+                setSaveStatus('Score saved.');
+            })
  .catch(function (error) {
                 console.error(error);
                 if (state.view === 'results') {
@@ -411,10 +404,31 @@ if (response && typeof response.score === 'number') {
             });
     }
 
-    function countWrong() {
-        return state.answers.filter(function (a) {
-            return a && !a.skipped && !a.is_correct;
-        }).length;
+    /** After saving: mark each review item Correct / Incorrect and show the right answer (server results). */
+    function applyResults(results) {
+        if (!Array.isArray(results)) {
+            return;
+        }
+        results.forEach(function (r) {
+            const index = quiz.questions.findIndex(function (qu) {
+                return qu.question_id === r.question_id;
+            });
+            if (index < 0 || r.selected_option_id === null || r.selected_option_id === undefined) {
+                return; // unknown question, or skipped: keep the "Skipped" chip
+            }
+            const $item = $('#quiz-stage .pl-review-item').eq(index);
+            $item.find('.pl-chip').first().text(r.is_correct ? 'Correct' : 'Incorrect');
+            if (!r.is_correct) {
+                const right = quiz.questions[index].options.find(function (o) {
+                    return o.option_id === r.correct_option_id;
+                });
+                if (right) {
+                    $item.find('.pl-review-line').first().after(
+                        el('p', 'pl-review-line', 'Correct answer: ').append(el('code', '', right.option_text))
+                    );
+                }
+            }
+        });
     }
 
     load();
