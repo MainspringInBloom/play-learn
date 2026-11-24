@@ -116,18 +116,15 @@ getQuiz: function (quizId) {
          * Resolves with { title, context, instructions, pairs: [...] }; the shape of
          * `pairs` depends on the game (see FRONTEND_WEEK5.md, "Game data shapes").
          *
-         * Note: week 5's API has NO endpoint for this yet. Either add one that reads
-         * lessons.game_type / lessons.game_data, or have game.php embed that data.
+         * Served by api/get_game.php, which reads lessons.game_type / lessons.game_data.
          */
         getGameData: function (gameType, lessonId) {
-            // TODO(API): replace this body once game data is available, e.g.
-            //   return request('GET', '/api/get_game.php', { lesson_id: lessonId });
-            void lessonId;
-            if (this.demoMode === 'fail-load') {
-                return failLater('Could not reach the server.');
-            }
-            const sample = PL.sample.games[gameType];
-            return sample ? later(clone(sample)) : failLater('Unknown game type.');
+            return request('GET', '/api/get_game.php', { lesson_id: lessonId, type: gameType }).then(function (res) {
+                if (!res || !res.ok || !res.game) {
+                    throw new Error((res && res.error) || 'Game not found');
+                }
+                return res.game;
+            });
         },
 
         /**
@@ -136,18 +133,17 @@ getQuiz: function (quizId) {
          * Resolves with { ok, game_attempt_id, score, max_score }.
          */
         saveGameScore: function (payload) {
-            // TODO(API): replace this body with
-            //   return request('POST', '/api/save_game_score.php', {
-            //       lesson_id: payload.lessonId,
-            //       score: payload.score,
-            //       max_score: payload.maxScore,
-            //       time_spent_seconds: payload.timeSpentSeconds,
-            //   });
-            void payload;
-            if (this.demoMode === 'fail-save') {
-                return failLater('Could not reach the server.');
-            }
-            return later({ ok: true, placeholder: true });
+            return request('POST', '/api/save_game_score.php', {
+                lesson_id: payload.lessonId,
+                score: payload.score,
+                max_score: payload.maxScore,
+                time_spent_seconds: payload.timeSpentSeconds,
+            }).then(function (res) {
+                if (!res || !res.ok) {
+                    throw new Error((res && res.error) || 'Unable to save game score');
+                }
+                return res;
+            });
         },
 
         /**
