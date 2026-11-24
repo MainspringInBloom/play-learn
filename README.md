@@ -7,7 +7,7 @@ progress) — built around two demo courses, Python 101 and Java 101.
 **Stack:** HTML, CSS, JavaScript, jQuery, Bootstrap (frontend) · PHP
 (backend) · MySQL (database)
 
-## Status: week 6 frontend/backend, plus Java 101 quiz integration
+## Status: week 6 frontend/backend, plus Java 101 backend (lessons, quizzes, games)
 
 - Login/session logic for all 3 roles
 - Admin CRUD (add/view/edit/delete) for lessons and quizzes
@@ -18,9 +18,15 @@ progress) — built around two demo courses, Python 101 and Java 101.
   `GET /api/get_quiz.php` loads a quiz from MySQL and `POST /api/save_quiz_score.php`
   grades it on the server and saves the attempt (`quiz_attempts`) and each answer
   (`quiz_responses`). `GET /api/get_java_lessons.php` lists the Java 101 lessons.
+- **Java 101 content:** `database/week7_java101_content.sql` fills all 10 Java lessons
+  with lesson text, gives every Java quiz its questions, and gives each lesson one game
+  (Match the Output or Memory Match).
+- **Games backend:** `GET /api/get_game.php` loads a lesson's game from
+  `lessons.game_type` / `lessons.game_data`, and `POST /api/save_game_score.php` saves the
+  result in `game_attempts`. The Games page lists the lesson games, and each lesson page
+  links to its game and quiz.
 
-Not yet built: complete sample lessons for Java and Python.
-Game data and game score-saving API (the game pages still use sample data).
+Not yet built: complete lessons for Python 101 (quizzes, games).
 Progress and feedback endpoints (those pages still use sample data).
 Admin/Parent feedback message logic.
 Parent dashboard.
@@ -39,6 +45,7 @@ Parent dashboard.
    mysql -u root -p play_and_learn < database/week4_java101_lessons.sql
    mysql -u root -p play_and_learn < database/week5_scores_schema.sql
    mysql -u root -p play_and_learn < database/week6_feedback_schema.sql
+   mysql -u root -p play_and_learn < database/week7_java101_content.sql
    ```
 
 3. **Set your DB password** in `config/db.php` (`DB_PASS`).
@@ -70,12 +77,14 @@ it and are certain the placeholder is still there.
   There's a confirm dialog, but no separate "this also deletes N quizzes"
   warning — worth a team decision on whether that needs to be louder.
 
-## API endpoints (quiz and lessons)
+## API endpoints (lessons, quizzes and games)
 
 | Endpoint | Method | Who | What it does |
 | --- | --- | --- | --- |
 | `/api/get_java_lessons.php` | GET | anyone | Java 101 lessons: `{success, lessons[]}` |
 | `/api/get_quiz.php?quiz_id=N` | GET | logged-in student | One quiz with questions and options. **Never sends `is_correct`**, so answers can't be read from the browser. |
+| `/api/get_game.php?lesson_id=N&type=T` | GET | logged-in student | The game stored on a lesson: `{ok, game:{title, context, instructions, pairs[]}}`. 404 if the lesson has no game or `type` doesn't match. |
+| `/api/save_game_score.php` | POST (JSON) | logged-in student | Body: `{lesson_id, score, max_score, time_spent_seconds}`. Inserts one `game_attempts` row. The server checks `max_score` equals pairs x 50 and `0 <= score <= max_score`, and returns `{ok, game_attempt_id, score, max_score}`. |
 | `/api/save_quiz_score.php` | POST (JSON) | logged-in student | Body: `{quizId, timeSpentSeconds, answers:[{question_id, option_id}]}`. The server grades, inserts one `quiz_attempts` row and one `quiz_responses` row per answer, and returns `{ok, attempt_id, score, correct_count, total_questions, results[]}`. Skipped questions are left out and count as not correct. |
 
 All endpoints return JSON. Errors look like `{"ok": false, "error": "..."}` with a 4xx/5xx status.
