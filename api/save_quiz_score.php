@@ -27,6 +27,11 @@ if (!is_array($input)) {
 $quizId = filter_var($input['quizId'] ?? null, FILTER_VALIDATE_INT);
 $answers = $input['answers'] ?? [];
 
+// Seconds spent on the quiz (the page sends timeSpentSeconds). Whole number, 0 or more,
+// capped at one day so a tab left open overnight can't produce a silly start time.
+$seconds = filter_var($input['timeSpentSeconds'] ?? $input['time_spent_seconds'] ?? 0, FILTER_VALIDATE_INT);
+$seconds = ($seconds === false || $seconds < 0) ? 0 : min($seconds, 86400);
+
 if (!$quizId || $quizId < 1 || !is_array($answers)) {
     respond(400, ['ok' => false, 'error' => 'Invalid quiz submission']);
 }
@@ -86,10 +91,18 @@ try {
 
     $stmt = $pdo->prepare(
         'INSERT INTO quiz_attempts
-         (student_id, quiz_id, score, correct_count, total_questions, finished_at)
-         VALUES (?, ?, ?, ?, ?, NOW())'
+         (student_id, quiz_id, score, correct_count, total_questions, started_at, finished_at)
+         VALUES (?, ?, ?, ?, ?, NOW() - INTERVAL ? SECOND, NOW())'
     );
-    $stmt->execute([$studentId, $quizId, $score, $correct, $total]);
+    // started_at is back-dated by the time spent, so finished_at - started_at is the duration
+    // the Progress page adds up.
+    $stmt->bindValue(1, $studentId, PDO::PARAM_INT);
+    $stmt->bindValue(2, $quizId, PDO::PARAM_INT);
+    $stmt->bindValue(3, $score);
+    $stmt->bindValue(4, $correct, PDO::PARAM_INT);
+    $stmt->bindValue(5, $total, PDO::PARAM_INT);
+    $stmt->bindValue(6, $seconds, PDO::PARAM_INT);
+    $stmt->execute();
     $attemptId = (int) $pdo->lastInsertId();
 
     $stmt = $pdo->prepare(

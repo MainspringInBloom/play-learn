@@ -75,7 +75,7 @@ require __DIR__ . '/../includes/admin_header.php';
 ?>
 <nav class="small mb-2">
     <a href="index.php">Courses</a> /
-    <a hhref="lessons.php?course_id=<?= $course_id ?>"><?= htmlspecialchars($course['title']) ?></a> /
+    <a href="lessons.php?course_id=<?= $course_id ?>"><?= htmlspecialchars($course['title']) ?></a> /
     <?= $is_edit ? 'Edit lesson' : 'Add lesson' ?>
 </nav>
 
