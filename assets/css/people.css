@@ -1,0 +1,123 @@
+/* ==========================================================================
+   Play & Learn: parent dashboard + admin people/progress pages (week 7).
+   Load after style.css, play.css and progress.css.
+   ========================================================================== */
+
+[hidden] { display: none !important; }
+
+.pl-muted { color: var(--pl-text-muted, #6B6A62); }
+
+/* ---- Parent: child picker -------------------------------------------------- */
+
+.pl-children {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.9rem;
+    margin: 1rem 0 1.5rem;
+}
+
+.pl-child {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.9rem 1rem;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+    background: #fff;
+    border: 2px solid var(--pl-border, #DDE3D6);
+    border-radius: 12px;
+    cursor: pointer;
+}
+.pl-child:hover { border-color: var(--pl-green-mid, #2F6B4F); }
+.pl-child[aria-pressed="true"] { border-color: var(--pl-green-dark, #1F4E3D); background: var(--pl-green-pale, #E7EFE6); }
+.pl-child:focus-visible { outline: 3px solid var(--pl-green-mid, #2F6B4F); outline-offset: 2px; }
+.pl-child-name { font-family: var(--plx-serif, Georgia, serif); font-size: 1.05rem; font-weight: 700; }
+.pl-child-line { font-size: 0.85rem; }
+.pl-child-bar { display: block; height: 8px; background: var(--plx-track, #ECE9DC); border-radius: 999px; overflow: hidden; }
+.pl-child-fill { display: block; height: 100%; background: var(--pl-green-mid, #2F6B4F); border-radius: 999px; }
+.pl-inline-bar { display: inline-block; width: 70px; margin-left: 0.5rem; vertical-align: middle; }
+
+.pl-child-heading { margin: 0 0 0.25rem; font-family: var(--plx-serif, Georgia, serif); font-size: 1.3rem; font-weight: 700; }
+
+/* ---- Messages: thread + composer ----------------------------------------------- */
+
+.pl-thread { max-height: 360px; overflow-y: auto; padding-right: 0.15rem; }
+.pl-message.is-mine { background: #fff; border-color: var(--plx-matched-border, #A9C0AE); }
+
+.pl-composer { margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid var(--pl-border, #DDE3D6); }
+.pl-composer textarea { resize: vertical; }
+.pl-composer-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.5rem; }
+.pl-count { font-size: 0.78rem; color: var(--pl-text-muted, #6B6A62); }
+.pl-composer-status { min-height: 1.3em; margin: 0.5rem 0 0; font-size: 0.85rem; }
+.pl-composer-status.is-error { color: #9B2C2C; }
+
+/* ---- Admin: forms, tables, status ------------------------------------------------ */
+
+.pl-status { min-height: 1.4em; margin: 0.75rem 0; font-size: 0.9rem; }
+.pl-status.is-error { color: #9B2C2C; }
+.pl-status.is-ok { color: var(--pl-green-dark, #1F4E3D); }
+
+.pl-tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
+.pl-tab {
+    padding: 0.45rem 1rem;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid var(--pl-border, #DDE3D6);
+    border-radius: 999px;
+    cursor: pointer;
+}
+.pl-tab.active { color: #fff; background: var(--pl-green-dark, #1F4E3D); border-color: var(--pl-green-dark, #1F4E3D); }
+.pl-tab:focus-visible { outline: 3px solid var(--pl-green-mid, #2F6B4F); outline-offset: 2px; }
+
+.pl-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; }
+.pl-form-grid .pl-form-wide { grid-column: 1 / -1; }
+
+.pl-tools { display: flex; flex-wrap: wrap; align-items: end; gap: 0.75rem; margin-bottom: 1rem; }
+.pl-tools .form-control, .pl-tools .form-select { min-width: 180px; }
+
+.pl-confirm { text-align: left; font-size: 0.85rem; }
+.pl-actions-cell { min-width: 240px; }
+
+/* ---- Admin: family links ---------------------------------------------------------- */
+
+.pl-links-layout { display: grid; grid-template-columns: minmax(200px, 280px) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.pl-parent-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.pl-pick-parent {
+    display: flex; flex-direction: column; gap: 0.1rem;
+    padding: 0.6rem 0.8rem; font: inherit; text-align: left; color: inherit;
+    background: #fff; border: 2px solid var(--pl-border, #DDE3D6); border-radius: 10px; cursor: pointer;
+}
+.pl-pick-parent.is-selected { border-color: var(--pl-green-dark, #1F4E3D); background: var(--pl-green-pale, #E7EFE6); }
+.pl-pick-parent:focus-visible { outline: 3px solid var(--pl-green-mid, #2F6B4F); outline-offset: 2px; }
+
+.pl-links { margin: 0 0 1rem; padding: 0; list-style: none; }
+.pl-links li { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.45rem 0; border-bottom: 1px solid var(--pl-border, #DDE3D6); }
+.pl-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.pl-link-add .form-select { flex: 1 1 auto; min-width: 0; }
+
+/* ---- Phones: tables become stacked cards ---------------------------------------------- */
+
+@media (max-width: 767.98px) {
+    .pl-links-layout { grid-template-columns: minmax(0, 1fr); }
+    .pl-stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .pl-stack, .pl-stack tbody, .pl-stack tr, .pl-stack td { display: block; width: 100%; }
+    .pl-stack tr { margin-bottom: 0.8rem; padding: 0.6rem 0.8rem; background: #fff; border: 1px solid var(--pl-border, #DDE3D6); border-radius: 10px; }
+    .pl-stack td { padding: 0.25rem 0; border: 0; overflow-wrap: anywhere; }
+    .pl-stack td[data-label]::before { content: attr(data-label) ': '; font-size: 0.75rem; font-weight: 700; color: var(--pl-text-muted, #6B6A62); }
+    .pl-stack td.text-end { text-align: left !important; }
+    .pl-actions-cell { min-width: 0; }
+}
+
+/* ---- Header on phones ----------------------------------------------------------------------------
+   The week 3 header is one row and runs off a 390px screen once the admin nav has four links.
+   On small screens the logo and user go on the first row and the nav wraps below, scrolling
+   sideways inside itself if it must. */
+@media (max-width: 767.98px) {
+    .pl-header-inner { flex-wrap: wrap; gap: 0.5rem 1rem; padding: 0.75rem 1rem; }
+    .pl-logo { flex: 1 1 auto; }
+    .pl-user { margin-left: auto; }
+    .pl-nav { order: 3; flex: 1 0 100%; gap: 1.25rem; overflow-x: auto; }
+    .pl-nav a { white-space: nowrap; }
+}
