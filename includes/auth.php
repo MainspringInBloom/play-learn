@@ -18,7 +18,7 @@ function is_logged_in(): bool
 function require_login(): void
 {
     if (!is_logged_in()) {
-        header('Location: /login.php');
+    header('Location: /login.php');
         exit;
     }
 }
@@ -46,11 +46,12 @@ function current_user(): array
 /** Redirect a freshly logged-in user to the right dashboard for their role. */
 function redirect_for_role(string $role): void
 {
-    $destinations = [
-        'admin'   => '/admin/index.php',
-        'student' => '/student/dashboard.php',
-        'parent'  => '/parent/dashboard.php', // built in a later week
-    ];
-    header('Location: ' . ($destinations[$role] ?? '/login.php'));
+   $destinations = [
+    'admin'   => '/admin/index.php',
+    'student' => '/student/dashboard.php',
+    'parent'  => '/parent/dashboard.php',
+];
+
+header('Location: ' . ($destinations[$role] ?? '/login.php'));
     exit;
 }

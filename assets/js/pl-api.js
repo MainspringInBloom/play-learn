@@ -62,11 +62,10 @@
                 });
         });
     }
-    void request; // referenced here only so linters don't flag it while unused
 
     PL.api = {
         /** true while the methods below still return sample data. */
-        placeholder: true,
+        placeholder: false,
 
         /** Current ?demo= value; the placeholders read it on every call. */
         demoMode: demoFromUrl,
@@ -78,19 +77,16 @@
          *     questions: [{ question_id, question_text, code_snippet, explanation,
          *                   sort_order, options: [{ option_id, option_text, is_correct }] }] }
          */
-        getQuiz: function (quizId) {
-            // TODO(API): replace this body with
-            //   return request('GET', '/api/get_quiz.php', { quiz_id: quizId })
-            //       .then((res) => res.quiz);
-            if (this.demoMode === 'fail-load') {
-                return failLater('Could not reach the server.');
-            }
-            const quiz = clone(PL.sample.quiz);
-            quiz.quiz_id = quizId;
-            if (this.demoMode === 'empty') {
-                quiz.questions = [];
-            }
-            return later(quiz);
+        
+getQuiz: function (quizId) {
+            // Root-relative path: works when the site is served from the project root
+            // (php -S localhost:8000). The server never sends is_correct to the browser.
+            return request('GET', '/api/get_quiz.php', { quiz_id: quizId }).then(function (res) {
+                if (!res || !res.ok || !res.quiz) {
+                    throw new Error((res && res.error) || 'Quiz not found');
+                }
+                return res.quiz;
+            });
         },
 
         /**
@@ -100,20 +96,16 @@
          *   payload = { quizId, timeSpentSeconds, answers: [{ question_id, option_id }] }
          *   (skipped questions are simply left out of `answers`)
          *
-         * Resolves with { ok, attempt_id, score, correct_count, total_questions, results }.
+         * Resolves with { ok, attempt_id, score, correct_count, total_questions,
+         *   results: [{ question_id, selected_option_id, correct_option_id, is_correct }] }.
          */
         saveQuizScore: function (payload) {
-            // TODO(API): replace this body with
-            //   return request('POST', '/api/save_quiz_score.php', {
-            //       quiz_id: payload.quizId,
-            //       time_spent_seconds: payload.timeSpentSeconds,
-            //       answers: payload.answers,
-            //   });
-            void payload;
-            if (this.demoMode === 'fail-save') {
-                return failLater('Could not reach the server.');
-            }
-            return later({ ok: true, placeholder: true });
+            return request('POST', '/api/save_quiz_score.php', payload).then(function (res) {
+                if (!res || !res.ok) {
+                    throw new Error((res && res.error) || 'Unable to save quiz score');
+                }
+                return res;
+            });
         },
 
         /**

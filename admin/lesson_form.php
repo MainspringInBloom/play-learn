@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         }
 
-        header('Location: /admin/lessons.php?course_id=' . $course_id . '&saved=1');
+        header('Location: lessons.php?course_id=' . $course_id . '&saved=1');
         exit;
     }
 }
@@ -74,8 +74,8 @@ $page_title = ($is_edit ? 'Edit' : 'Add') . ' lesson';
 require __DIR__ . '/../includes/admin_header.php';
 ?>
 <nav class="small mb-2">
-    <a href="/admin/index.php">Courses</a> /
-    <a href="/admin/lessons.php?course_id=<?= $course_id ?>"><?= htmlspecialchars($course['title']) ?></a> /
+    <a href="index.php">Courses</a> /
+    <a hhref="lessons.php?course_id=<?= $course_id ?>"><?= htmlspecialchars($course['title']) ?></a> /
     <?= $is_edit ? 'Edit lesson' : 'Add lesson' ?>
 </nav>
 

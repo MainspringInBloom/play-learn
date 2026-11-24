@@ -36,8 +36,9 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+
 <script src="/assets/js/pl-sample-data.js"></script>
-<script src="/assets/js/pl-api.js"></script>
 <script src="/assets/js/pl-util.js"></script>
+<script src="/assets/js/pl-api.js"></script>
 <script src="/assets/js/quiz.js"></script>
 <?php require __DIR__ . '/../includes/footer.php'; ?>
