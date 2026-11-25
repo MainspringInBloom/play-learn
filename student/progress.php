@@ -1,6 +1,5 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
-require __DIR__ . '/../includes/viewer.php';
 require_role('student');
 
 $page_title = 'Progress';
@@ -20,7 +19,6 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-    <span class="pl-sample-badge" id="progress-sample" hidden>Sample data &middot; API not connected</span>
 
     <div id="progress-view"></div>
 
@@ -38,8 +36,6 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="/assets/js/pl-sample-progress.js"></script>
-<?php render_viewer_script(); ?>
 <script src="/assets/js/pl-api.js"></script>
 <script src="/assets/js/pl-util.js"></script>
 <script src="/assets/js/pl-format.js"></script>

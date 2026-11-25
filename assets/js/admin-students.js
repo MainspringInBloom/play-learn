@@ -78,7 +78,6 @@
     }
 
     $(function () {
-        if (PL.api.placeholder) $('#admin-sample').prop('hidden', false);
         $('#student-search').on('input', render);
         $('#student-sort').on('change', render);
         load();

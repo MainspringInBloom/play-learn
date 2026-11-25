@@ -17,6 +17,12 @@ mysql -u root -p < database/schema.sql
 mysql -u root -p play_and_learn < database/week3_updates.sql
 mysql -u root -p play_and_learn < database/week4_java101_lessons.sql
 mysql -u root -p play_and_learn < database/week5_scores_schema.sql
+mysql -u root -p play_and_learn < database/week6_feedback_schema.sql
+mysql -u root -p play_and_learn < database/week7_java101_content.sql
 ```
 Then set `DB_PASS` in `config/db.php` to your local MySQL password.
 NOTE: DO NOT INCLUDE CONFIG FILE IN COMMITS, your local mySQL password may end up being part of said commit.
+
+- `week7_java101_content.sql` - Java 101 lesson text, quiz questions and one game per lesson (safe to re-run).
+- `week6_feedback_schema.sql` - adds `parent_students` (parent/child links) and `feedback_messages`.
+  The lesson flow, progress pages and admin pages need the week 5 and week 6 tables to exist.

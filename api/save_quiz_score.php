@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/progress.php';
 
 function respond(int $status, array $data): void {
     http_response_code($status);
@@ -40,6 +41,13 @@ $studentId = (int) $_SESSION['user_id'];
 
 try {
     $pdo->beginTransaction();
+
+    // Lessons open in order: the quiz of a locked lesson stays locked too.
+    $lessonId = pl_quiz_lesson_id($pdo, $quizId);
+    if ($lessonId !== null && !pl_lesson_unlocked($pdo, $lessonId, $studentId)) {
+        $pdo->rollBack();
+        respond(403, ['ok' => false, 'error' => 'Finish the earlier lessons to unlock this quiz']);
+    }
 
     $stmt = $pdo->prepare(
         'SELECT q.question_id, ao.option_id, ao.is_correct
@@ -89,6 +97,10 @@ try {
     $total = count($questions);
     $score = round(($correct / $total) * 100, 2);
 
+    // A quiz the student already passed is practice: graded below, but rolled back, not saved.
+    $best = pl_best_score($pdo, $studentId, $quizId);
+    $practice = $best !== null && $best >= PL_PASS_PERCENT;
+
     $stmt = $pdo->prepare(
         'INSERT INTO quiz_attempts
          (student_id, quiz_id, score, correct_count, total_questions, started_at, finished_at)
@@ -120,7 +132,18 @@ try {
         ]);
     }
 
-    $pdo->commit();
+    // Passing the last unpassed quiz of the lesson completes it and opens the next one.
+    $passed = $score >= PL_PASS_PERCENT;
+    $lessonCompleted = false;
+    if (!$practice && $passed && pl_lesson_quizzes_passed($pdo, $lessonId, $studentId)) {
+        $lessonCompleted = pl_complete_lesson($pdo, $studentId, $lessonId);
+    }
+
+    if ($practice) {
+        $pdo->rollBack();
+    } else {
+        $pdo->commit();
+    }
 
     // Per-question results so the page can show what was right (only after submitting).
     $results = [];
@@ -136,10 +159,14 @@ try {
 
     respond(200, [
         'ok' => true,
-        'attempt_id' => $attemptId,
+        'attempt_id' => $practice ? null : $attemptId,
         'score' => $score,
         'correct_count' => $correct,
         'total_questions' => $total,
+        'passed' => $passed,
+        'pass_percent' => PL_PASS_PERCENT,
+        'practice' => $practice,
+        'lesson_completed' => $lessonCompleted,
         'results' => $results
     ]);
 

@@ -8,7 +8,6 @@
     const PL = global.PL;
 
     $(function () {
-        if (PL.api.placeholder) $('#admin-sample').prop('hidden', false);
         const studentId = Number($('#admin-student').attr('data-student-id'));
         const feedback = PL.feedbackPanel.create({ title: 'Messages' });
         const view = PL.progressView.create($('#progress-view'), { extra: feedback.$el });

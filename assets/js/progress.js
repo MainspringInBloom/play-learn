@@ -62,7 +62,6 @@
     }
 
     $(function () {
-        if (PL.api.placeholder) $('#progress-sample').prop('hidden', false);
         PL.progressView.create($('#progress-view'), { extra: $('#feedback-panel') }).load();
         loadFeedback();
     });

@@ -6,6 +6,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/progress.php';
 
 // Must match POINTS_PER_PAIR in assets/js/game-runner.js.
 const POINTS_PER_PAIR = 50;
@@ -55,6 +56,10 @@ try {
 
     if (!$lesson || !$lesson['game_type']) {
         respond(404, ['ok' => false, 'error' => 'This lesson has no game']);
+    }
+
+    if (!pl_lesson_unlocked($pdo, $lessonId, $studentId)) {
+        respond(403, ['ok' => false, 'error' => 'Finish the earlier lessons to unlock this game']);
     }
 
     // The best possible score is fixed by the game itself, so don't trust the browser's max_score.

@@ -152,7 +152,6 @@
     }
 
     $(function () {
-        if (PL.api.placeholder) $('#admin-sample').prop('hidden', false);
         $('#tab-student').on('click', () => switchTab('student'));
         $('#tab-parent').on('click', () => switchTab('parent'));
         $('#u-role').on('change', function () { switchTab($(this).val()); });

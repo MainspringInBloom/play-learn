@@ -1,29 +1,25 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../config/db.php';
+require __DIR__ . '/../includes/progress.php';
 require_role('student');
 
 $page_title = 'Quizzes';
 $active_nav = 'quizzes';
+$student_id = (int) $_SESSION['user_id'];
 
-// Every quiz, grouped by course, in teaching order.
-$rows = $pdo->query('
-    SELECT c.course_id, c.title AS course_title,
-           l.lesson_id, l.title AS lesson_title,
-           q.quiz_id, q.title AS quiz_title
-    FROM quizzes q
-    JOIN lessons l ON l.lesson_id = q.lesson_id
-    JOIN courses c ON c.course_id = l.course_id
-    ORDER BY c.course_id, l.sort_order, l.lesson_id, q.quiz_id
-')->fetchAll();
-
+// Every quiz, grouped by course, in teaching order, with this student's status.
 $courses = [];
-foreach ($rows as $row) {
-    $cid = (int) $row['course_id'];
-    if (!isset($courses[$cid])) {
-        $courses[$cid] = ['title' => $row['course_title'], 'quizzes' => []];
+foreach ($pdo->query('SELECT course_id, title FROM courses ORDER BY course_id')->fetchAll() as $c) {
+    $quizzes = [];
+    foreach (pl_course_lessons($pdo, (int) $c['course_id'], $student_id) as $lesson) {
+        foreach (pl_playable_quizzes($lesson) as $q) {
+            $quizzes[] = $q + ['lesson_title' => $lesson['title'], 'locked' => $lesson['locked']];
+        }
     }
-    $courses[$cid]['quizzes'][] = $row;
+    if ($quizzes) {
+        $courses[] = ['title' => $c['title'], 'quizzes' => $quizzes];
+    }
 }
 
 require __DIR__ . '/../includes/header.php';
@@ -32,7 +28,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="pl-narrow">
     <h1 class="pl-page-title mb-1">Quizzes</h1>
-    <p class="pl-page-sub mb-4">Pick a quiz to test what you've learned. You get feedback after every question.</p>
+    <p class="pl-page-sub mb-4">Pass a lesson's quiz (<?= PL_PASS_PERCENT ?>% or more) to open the next lesson. Quizzes you've passed can be practised again without changing your scores.</p>
 
     <?php foreach ($courses as $course): ?>
         <section class="pl-panel mb-3">
@@ -41,11 +37,20 @@ require __DIR__ . '/../includes/header.php';
                 <?php foreach ($course['quizzes'] as $quiz): ?>
                     <li>
                         <span>
-                            <?= htmlspecialchars($quiz['quiz_title']) ?>
-                            <span class="pl-quiz-lesson">Lesson: <?= htmlspecialchars($quiz['lesson_title']) ?></span>
+                            <?= htmlspecialchars($quiz['title']) ?>
+                            <span class="pl-quiz-lesson">
+                                Lesson: <?= htmlspecialchars($quiz['lesson_title']) ?>
+                                <?php if ($quiz['locked']): ?>&middot; locked
+                                <?php elseif ($quiz['best'] !== null): ?>&middot; best <?= (int) round($quiz['best']) ?>%<?= $quiz['passed'] ? ' (passed)' : '' ?>
+                                <?php endif; ?>
+                            </span>
                         </span>
-                        <a class="btn btn-pl-primary btn-sm"
-                           href="/student/quiz.php?quiz_id=<?= (int) $quiz['quiz_id'] ?>">Start</a>
+                        <?php if ($quiz['locked']): ?>
+                            <span class="pl-status pl-status--locked">Locked</span>
+                        <?php else: ?>
+                            <a class="btn <?= $quiz['passed'] ? 'btn-outline-secondary' : 'btn-pl-primary' ?> btn-sm"
+                               href="/student/quiz.php?quiz_id=<?= (int) $quiz['quiz_id'] ?>"><?= $quiz['passed'] ? 'Practice' : ($quiz['best'] !== null ? 'Try again' : 'Start') ?></a>
+                        <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ul>

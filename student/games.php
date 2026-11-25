@@ -1,36 +1,34 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../config/db.php';
+require __DIR__ . '/../includes/progress.php';
+require __DIR__ . '/../includes/games.php';
 require_role('student');
 
 $page_title = 'Games';
 $active_nav = 'games';
+$student_id = (int) $_SESSION['user_id'];
 
-$labels = [
-    'match_output' => ['Match the Output', 'Pick a code snippet, then pick the output it prints. Find all the pairs.'],
-    'memory'       => ['Memory Match', 'Flip cards to match each programming term with its meaning.'],
-];
-
-// Every lesson that has a game, grouped by course, in teaching order.
-$rows = $pdo->query('
-    SELECT c.course_id, c.title AS course_title,
-           l.lesson_id, l.title AS lesson_title, l.game_type
-    FROM lessons l
-    JOIN courses c ON c.course_id = l.course_id
-    WHERE l.game_type IS NOT NULL AND l.game_type <> \'\'
-    ORDER BY c.course_id, l.sort_order, l.lesson_id
-')->fetchAll();
+// Each lesson can have one game (set by an admin). Games open with their lesson.
+$data = $pdo->query('SELECT lesson_id, game_type, game_data FROM lessons WHERE game_type IS NOT NULL')->fetchAll();
+$playable = [];
+foreach ($data as $row) {
+    if (pl_playable_game($row['game_type'], $row['game_data']) !== null) {
+        $playable[(int) $row['lesson_id']] = $row['game_type'];
+    }
+}
 
 $courses = [];
-foreach ($rows as $row) {
-    if (!isset($labels[$row['game_type']])) {
-        continue; // a game type we have no engine for yet
+foreach ($pdo->query('SELECT course_id, title FROM courses ORDER BY course_id')->fetchAll() as $c) {
+    $games = [];
+    foreach (pl_course_lessons($pdo, (int) $c['course_id'], $student_id) as $lesson) {
+        if (isset($playable[$lesson['lesson_id']])) {
+            $games[] = ['lesson' => $lesson, 'type' => $playable[$lesson['lesson_id']]];
+        }
     }
-    $cid = (int) $row['course_id'];
-    if (!isset($courses[$cid])) {
-        $courses[$cid] = ['title' => $row['course_title'], 'games' => []];
+    if ($games) {
+        $courses[] = ['title' => $c['title'], 'games' => $games];
     }
-    $courses[$cid]['games'][] = $row;
 }
 
 require __DIR__ . '/../includes/header.php';
@@ -38,20 +36,21 @@ require __DIR__ . '/../includes/header.php';
 <link rel="stylesheet" href="/assets/css/play.css">
 
 <h1 class="pl-page-title mb-1">Games</h1>
-<p class="pl-page-sub mb-4">Practice what you've learned. Every match scores points.</p>
+<p class="pl-page-sub mb-4">Practice what you've learned. Every match scores points. A game opens once its lesson is unlocked.</p>
 
 <?php foreach ($courses as $course): ?>
-    <h2 class="h5 mt-4 mb-3"><?= htmlspecialchars($course['title']) ?></h2>
-    <div class="pl-card-grid">
-        <?php foreach ($course['games'] as $game): ?>
-            <?php [$label, $blurb] = $labels[$game['game_type']]; ?>
+    <p class="pl-eyebrow"><?= htmlspecialchars($course['title']) ?></p>
+    <div class="pl-card-grid mb-4">
+        <?php foreach ($course['games'] as $g): ?>
             <section class="pl-list-card">
-                <p class="pl-quiz-lesson mb-1">Lesson: <?= htmlspecialchars($game['lesson_title']) ?></p>
-                <h2><?= htmlspecialchars($label) ?></h2>
-                <p><?= htmlspecialchars($blurb) ?></p>
+                <h2><?= htmlspecialchars(PL_GAME_TYPES[$g['type']]['label']) ?></h2>
+                <p><?= htmlspecialchars($g['lesson']['title']) ?></p>
                 <div>
-                    <a class="btn btn-pl-primary btn-sm"
-                       href="/student/game.php?type=<?= urlencode($game['game_type']) ?>&amp;lesson_id=<?= (int) $game['lesson_id'] ?>">Play</a>
+                    <?php if ($g['lesson']['locked']): ?>
+                        <span class="pl-status pl-status--locked">Locked</span>
+                    <?php else: ?>
+                        <a class="btn btn-pl-primary btn-sm" href="/student/game.php?type=<?= urlencode($g['type']) ?>&amp;lesson_id=<?= (int) $g['lesson']['lesson_id'] ?>">Play</a>
+                    <?php endif; ?>
                 </div>
             </section>
         <?php endforeach; ?>
@@ -59,7 +58,7 @@ require __DIR__ . '/../includes/header.php';
 <?php endforeach; ?>
 
 <?php if (empty($courses)): ?>
-    <div class="pl-panel pl-state"><p class="mb-0">No games are available yet.</p></div>
+    <div class="pl-panel pl-state"><p class="mb-0">No games have been added yet. Check back soon.</p></div>
 <?php endif; ?>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

@@ -1,6 +1,5 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
-require __DIR__ . '/../includes/viewer.php';
 require_role('parent');
 
 $page_title = 'Dashboard';
@@ -19,7 +18,6 @@ require __DIR__ . '/../includes/parent_header.php';
         </div>
     </div>
 
-    <span class="pl-sample-badge" id="parent-sample" hidden>Sample data &middot; API not connected</span>
 
     <div class="pl-children" id="children" role="group" aria-label="Your children"></div>
 
@@ -32,9 +30,6 @@ require __DIR__ . '/../includes/parent_header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="/assets/js/pl-sample-progress.js"></script>
-<script src="/assets/js/pl-sample-people.js"></script>
-<?php render_viewer_script(); ?>
 <script src="/assets/js/pl-api.js"></script>
 <script src="/assets/js/pl-util.js"></script>
 <script src="/assets/js/pl-format.js"></script>

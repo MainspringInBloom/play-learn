@@ -5,11 +5,16 @@
  *   PL.api.getQuiz(quizId)         when the page opens
  *   PL.api.saveQuizScore(payload)  once, when the last question is done
  *
+ * Lesson flow: passing (60% by default, set in includes/progress.php) completes the lesson and
+ * offers the next one; failing offers the lesson to re-read and a retake. A quiz that was
+ * already passed runs as practice: it is graded but the server saves nothing.
+ *
  * Markup shell: student/quiz.php. Styles: assets/css/play.css.
  */
 $(function () {
     'use strict';
 
+    const global = window;
     const PL = window.PL;
     const el = PL.util.el;
 
@@ -20,21 +25,22 @@ $(function () {
 
     const quizId = parseInt($app.data('quizId'), 10);
     const backUrl = String($app.data('backUrl') || '/student/quizzes.php');
+    const lessonUrl = String($app.data('lessonUrl') || '');
+    const syllabusUrl = String($app.data('syllabusUrl') || backUrl);
+    const nextUrl = String($app.data('nextUrl') || '');
+    const nextLabel = String($app.data('nextLabel') || 'Next lesson');
+    let alreadyPassed = String($app.attr('data-passed')) === '1'; // true: this run is practice
 
     const $title = $('#quiz-title');
     const $count = $('#quiz-count');
     const $progress = $('#quiz-progress');
     const $stage = $('#quiz-stage');
-    const $sample = $('#quiz-sample');
+    const $practice = $('#quiz-practice');
 
     let quiz = null;
     // state.view: 'question' | 'results'
     // state.answers[i]: null (not reached) or { question_id, option_id, is_correct, skipped }
     let state = null;
-
-    if (PL.api.placeholder) {
-        $sample.prop('hidden', false);
-    }
 
     // ---- Small view helpers -------------------------------------------------
 
@@ -54,7 +60,7 @@ $(function () {
     }
 
     function showBackLink($parent) {
-        $parent.append(el('a', 'btn btn-outline-secondary', 'Back to quizzes').attr('href', backUrl));
+        $parent.append(el('a', 'btn btn-outline-secondary', syllabusUrl === backUrl ? 'Back to quizzes' : 'Back to syllabus').attr('href', syllabusUrl));
     }
 
     // ---- Loading ------------------------------------------------------------
@@ -69,6 +75,7 @@ $(function () {
             .then(function (loaded) {
                 quiz = loaded;
                 $title.text(quiz.title);
+                $practice.prop('hidden', !alreadyPassed);
                 document.title = quiz.title + ' · Play & Learn';
 
                 if (!quiz.questions || quiz.questions.length === 0) {
@@ -80,6 +87,12 @@ $(function () {
             .catch(function (error) {
                 console.error(error);
                 $title.text('Quiz');
+                if (/unlock/i.test(error.message || '')) {
+                    showMessage(error.message || 'This quiz is locked.', 'Back to syllabus', function () {
+                        global.location.href = syllabusUrl;
+                    });
+                    return;
+                }
                 showMessage("We couldn't load this quiz. Check your connection and try again.", 'Try again', load);
             });
     }
@@ -273,9 +286,7 @@ $('#quiz-feedback')
         const $sub = el('p', 'pl-result-sub').attr('id', 'quiz-result-sub');
         const $message = el('p', 'pl-result-msg', encouragement(summary.percent)).attr('id', 'quiz-result-msg');
         const $save = el('p', 'pl-save-status').attr({ id: 'quiz-save-status', role: 'status', 'aria-live': 'polite' });
-        const $retake = el('button', 'btn btn-pl-primary', 'Retake quiz').attr('type', 'button').on('click', startAttempt);
-        const $actions = el('div', 'pl-result-actions').append($retake);
-        showBackLink($actions);
+        const $actions = el('div', 'pl-result-actions').attr('id', 'quiz-actions');
 
         const $results = el('section', 'pl-panel pl-results')
             .attr({ 'aria-labelledby': 'quiz-result-eyebrow', tabindex: '-1' })
@@ -375,33 +386,73 @@ $list.append($item);
                 if (state.view !== 'results') {
                     return; // the student already started a retake
                 }
-                if (response && response.placeholder) {
-                    setSaveStatus('Sample mode: this score was not saved.');
-                    return;
-                }
                 // The server grades the quiz itself, so show its numbers.
-                if (response && typeof response.score === 'number') {
-                    const skipped = state.answers.filter(function (a) {
-                        return a && a.skipped;
-                    }).length;
-                    paintSummary({
-                        correct: response.correct_count,
-                        total: response.total_questions,
-                        skipped: skipped,
-                        percent: Math.round(response.score),
-                    });
-                    $('#quiz-result-msg').text(encouragement(Math.round(response.score)));
-                    applyResults(response.results);
-                }
+                const percent = Math.round(response.score);
+                const skipped = state.answers.filter(function (a) {
+                    return a && a.skipped;
+                }).length;
+                paintSummary({
+                    correct: response.correct_count,
+                    total: response.total_questions,
+                    skipped: skipped,
+                    percent: percent,
+                });
+                applyResults(response.results);
+                paintOutcome(response, percent);
 
-                setSaveStatus('Score saved.');
+                setSaveStatus(response.practice ? 'Practice run: nothing was saved, so your progress is unchanged.' : 'Score saved.');
             })
  .catch(function (error) {
                 console.error(error);
                 if (state.view === 'results') {
                     setSaveStatus("We couldn't save your score.", 'error', save);
+                    paintActions(null);
                 }
             });
+    }
+
+    /** Pass / fail message and the buttons that go with it. */
+    function paintOutcome(response, percent) {
+        const need = response.pass_percent;
+        let message;
+        if (response.practice) {
+            message = 'Nice practice run. This lesson is already complete.';
+        } else if (response.passed) {
+            message = response.lesson_completed
+                ? 'You passed, and this lesson is complete. ' + encouragement(percent)
+                : 'You passed. ' + encouragement(percent);
+        } else {
+            message = 'You need ' + need + '% to move on. Re-read the lesson, then try again.';
+        }
+        $('#quiz-result-eyebrow').text(response.practice ? 'Practice complete' : response.passed ? 'Quiz passed' : 'Not quite yet');
+        $('#quiz-result-msg').text(message);
+        if (response.passed && !response.practice) {
+            alreadyPassed = true; // a retake from here is practice
+        }
+        paintActions(response);
+    }
+
+    function paintActions(response) {
+        const $actions = $('#quiz-actions').empty();
+        const passed = response && response.passed;
+        if (response && !passed && lessonUrl) {
+            $actions.append(el('a', 'btn btn-outline-secondary', 'Review the lesson').attr('href', lessonUrl));
+        }
+        if (passed && !response.practice) {
+            $actions.append(el('a', 'btn btn-pl-primary', nextLabel).attr('href', nextUrl || syllabusUrl));
+        }
+        if (response) {
+            $actions.append(
+                el('button', passed && !response.practice ? 'btn btn-outline-secondary' : 'btn btn-pl-primary',
+                   response.practice || passed ? 'Practice again' : 'Retake quiz')
+                    .attr('type', 'button')
+                    .on('click', function () {
+                        $practice.prop('hidden', !alreadyPassed);
+                        startAttempt();
+                    })
+            );
+        }
+        showBackLink($actions);
     }
 
     /** After saving: mark each review item Correct / Incorrect and show the right answer (server results). */

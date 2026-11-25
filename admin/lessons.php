@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../config/db.php';
+require __DIR__ . '/../includes/games.php';
 require_role('admin');
 
 $course_id = (int) ($_GET['course_id'] ?? 0);
@@ -43,13 +44,16 @@ require __DIR__ . '/../includes/admin_header.php';
 <?php if (isset($_GET['deleted'])): ?>
     <div class="alert alert-success">Lesson deleted.</div>
 <?php endif; ?>
+<?php if (isset($_GET['game_deleted'])): ?>
+    <div class="alert alert-success">Game removed from the lesson.</div>
+<?php endif; ?>
 
 <table class="table pl-table align-middle">
     <thead>
         <tr>
             <th>#</th>
             <th>Title</th>
-            <th>Game type</th>
+            <th>Game</th>
             <th>Quizzes</th>
             <th></th>
         </tr>
@@ -59,7 +63,20 @@ require __DIR__ . '/../includes/admin_header.php';
             <tr>
                 <td><?= (int) $lesson['sort_order'] ?></td>
                 <td><?= htmlspecialchars($lesson['title']) ?></td>
-                <td><?= htmlspecialchars($lesson['game_type'] ?? '—') ?></td>
+                <td>
+                    <?php if (!empty($lesson['game_type'])): ?>
+                        <?= htmlspecialchars(PL_GAME_TYPES[$lesson['game_type']]['label'] ?? $lesson['game_type']) ?>
+                        <a class="small ms-1" href="/admin/game_form.php?lesson_id=<?= (int) $lesson['lesson_id'] ?>">Edit</a>
+                        <form class="d-inline" method="post" action="/admin/delete_game.php"
+                              onsubmit="return confirm('Remove this game from the lesson? Students\' past game scores are kept.');">
+                            <input type="hidden" name="lesson_id" value="<?= (int) $lesson['lesson_id'] ?>">
+                            <input type="hidden" name="course_id" value="<?= $course_id ?>">
+                            <button class="btn btn-link btn-sm p-0 ms-1 text-danger" type="submit">Remove</button>
+                        </form>
+                    <?php else: ?>
+                        <a href="/admin/game_form.php?lesson_id=<?= (int) $lesson['lesson_id'] ?>">+ Add game</a>
+                    <?php endif; ?>
+                </td>
                 <td>
                     <a href="/admin/quizzes.php?lesson_id=<?= (int) $lesson['lesson_id'] ?>">
                         <?= (int) $lesson['quiz_count'] ?> quiz<?= $lesson['quiz_count'] == 1 ? '' : 'zes' ?>

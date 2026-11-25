@@ -1,44 +1,19 @@
 /**
- * API seam for the student, parent and admin pages (weeks 5-7: PLACEHOLDERS).
+ * API seam for the student, parent and admin pages.
  *
  * Every call the pages make to the server goes through PL.api, and nothing else
- * in the frontend talks to the backend. Right now each method returns sample
- * data from the pl-sample-*.js files, so the pages work without the API.
- * Who is logged in is read from PL.viewer ({ user_id, role, first_name }), which each
- * page sets from the PHP session. Only the placeholders use it; the real server
- * always takes the user from the session.
+ * in the frontend talks to the backend. Who is logged in always comes from the
+ * PHP session on the server; the browser never sends its own user id.
  *
- * TO CONNECT THE REAL API, for each method below:
- *   1. replace the body with the code in its "TODO(API)" comment,
- *   2. set `placeholder` to false (this hides the "Sample data" badge and makes
- *      the pages treat saves as real),
- *   3. when all methods are done, delete pl-sample-data.js and its <script> tags.
- *
- * Contract (request and response shapes, error codes): api/README.md
- *
- * Dev switch while still on placeholders: add ?demo=... to a page URL to try
- * the unhappy paths.
- *     ?demo=empty      quiz with no questions
- *     ?demo=fail-load  loading fails
- *     ?demo=fail-save  saving a score fails
- *     ?demo=fail-feedback  loading messages fails (progress page)
- *     (progress page also: ?demo=empty = a brand new student with no activity)
- *     Parent/admin pages: ?demo=empty (no children / no students), fail-load, fail-feedback,
- *     fail-save (sending a message, adding/removing a person or link fails)
+ * Contract (request and response shapes, error codes): the table in README.md
+ * and the comment above each method.
  */
 (function (global, $) {
     'use strict';
 
     const PL = (global.PL = global.PL || {});
 
-    const demoFromUrl = new URLSearchParams(global.location.search).get('demo') || '';
-
-    const clone = (value) => JSON.parse(JSON.stringify(value));
-    const later = (value, ms) => new Promise((resolve) => setTimeout(() => resolve(value), ms === undefined ? 250 : ms));
-    const failLater = (message) => new Promise((_, reject) => setTimeout(() => reject(new Error(message)), 250));
-
     /**
-     * Ready for use when wiring the real endpoints (unused by the placeholders).
      * Wraps $.ajax in a native Promise and turns a failed request into an Error
      * carrying the server's {"ok": false, "error": "..."} message.
      *
@@ -64,12 +39,6 @@
     }
 
     PL.api = {
-        /** true while the methods below still return sample data. */
-        placeholder: false,
-
-        /** Current ?demo= value; the placeholders read it on every call. */
-        demoMode: demoFromUrl,
-
         /**
          * Load one quiz with its questions and options.
          * Resolves with the quiz object:
@@ -111,7 +80,7 @@ getQuiz: function (quizId) {
         /**
          * Load the data for one game.
          *   gameType: 'match_output' | 'memory'
-         *   lessonId: the lesson the game belongs to (0 while in sample mode)
+         *   lessonId: the lesson the game belongs to 
          *
          * Resolves with { title, context, instructions, pairs: [...] }; the shape of
          * `pairs` depends on the game (see FRONTEND_WEEK5.md, "Game data shapes").
@@ -146,6 +115,11 @@ getQuiz: function (quizId) {
             });
         },
 
+        /** Mark a lesson that has no quiz as complete. Resolves with { ok, completed, newly_completed }. */
+        completeLesson: function (lessonId) {
+            return request('POST', '/api/save_lesson_progress.php', { lesson_id: lessonId });
+        },
+
         /**
          * Everything the Progress page charts, for ONE student.
          *   getProgress()           the logged-in student's own (student pages)
@@ -162,24 +136,7 @@ getQuiz: function (quizId) {
          * them. See FRONTEND_WEEK7.md for the rules and suggested SQL.
          */
         getProgress: function (studentId) {
-            // TODO(API): replace this body with
-            //   return request('GET', '/api/get_progress.php', studentId ? { student_id: studentId } : undefined);
-            if (this.demoMode === 'fail-load') {
-                return failLater('Could not reach the server.');
-            }
-            if (studentId !== undefined && studentId !== null) {
-                return attempt(() => PL.sample.server.progress(studentId));
-            }
-            const data = clone(PL.sample.progress);
-            if (this.demoMode === 'empty') {
-                data.totals = { lessons_completed: 0, total_lessons: 12, quizzes_taken: 0, quiz_average: null,
-                                games_played: 0, time_spent_seconds: 0 };
-                data.quiz_scores = [];
-                data.daily_activity = [];
-                data.game_scores = [];
-                data.courses.forEach((c) => { c.completed_lessons = 0; });
-            }
-            return later(data);
+            return request('GET', '/api/get_progress.php', studentId ? { student_id: studentId } : undefined);
         },
 
         /**
@@ -191,26 +148,12 @@ getQuiz: function (quizId) {
          * is_mine (parent/admin views) is true for messages the logged-in user wrote.
          */
         getFeedback: function (studentId) {
-            // TODO(API): replace this body with
-            //   return request('GET', '/api/get_feedback.php', studentId ? { student_id: studentId } : undefined);
-            if (this.demoMode === 'fail-feedback') {
-                return failLater('Could not reach the server.');
-            }
-            if (studentId !== undefined && studentId !== null) {
-                return attempt(() => PL.sample.server.feedback(studentId));
-            }
-            return later({ messages: this.demoMode === 'empty' ? [] : clone(PL.sample.feedback) });
+            return request('GET', '/api/get_feedback.php', studentId ? { student_id: studentId } : undefined);
         },
 
         /** Mark one message read (student pages). Resolves with { ok: true }. */
         markFeedbackRead: function (messageId) {
-            // TODO(API): replace this body with
-            //   return request('POST', '/api/mark_feedback_read.php', { message_id: messageId });
-            void messageId;
-            if (this.demoMode === 'fail-save') {
-                return failLater('Could not reach the server.');
-            }
-            return later({ ok: true });
+            return request('POST', '/api/mark_feedback_read.php', { message_id: messageId });
         },
 
         /**
@@ -221,12 +164,7 @@ getQuiz: function (quizId) {
          *                            read_at: null, is_mine: true } }
          */
         sendFeedback: function (payload) {
-            // TODO(API): replace this body with
-            //   return request('POST', '/api/send_feedback.php', { student_id: payload.studentId, body: payload.body });
-            if (this.demoMode === 'fail-save') {
-                return failLater('Could not reach the server.');
-            }
-            return attempt(() => PL.sample.server.send(payload.studentId, payload.body));
+            return request('POST', '/api/send_feedback.php', { student_id: payload.studentId, body: payload.body });
         },
 
         /**
@@ -235,15 +173,7 @@ getQuiz: function (quizId) {
          *   lessons_completed, total_lessons, quiz_average|null, games_played, last_active_at|null }] }
          */
         getChildren: function () {
-            // TODO(API): replace this body with
-            //   return request('GET', '/api/get_children.php');
-            if (this.demoMode === 'fail-load') {
-                return failLater('Could not reach the server.');
-            }
-            if (this.demoMode === 'empty') {
-                return later({ children: [] });
-            }
-            return attempt(() => PL.sample.server.children());
+            return request('GET', '/api/get_children.php');
         },
 
         /**
@@ -253,15 +183,7 @@ getQuiz: function (quizId) {
          *   last_active_at|null, parents: [{ user_id, name }] }] }
          */
         getStudentsOverview: function () {
-            // TODO(API): replace this body with
-            //   return request('GET', '/api/admin/get_students_overview.php');
-            if (this.demoMode === 'fail-load') {
-                return failLater('Could not reach the server.');
-            }
-            if (this.demoMode === 'empty') {
-                return later({ students: [] });
-            }
-            return attempt(() => PL.sample.server.overview());
+            return request('GET', '/api/admin/get_students_overview.php');
         },
 
         /**
@@ -271,15 +193,7 @@ getQuiz: function (quizId) {
          * (a parent's links are their children; a student's links are their parents)
          */
         getUsers: function (role) {
-            // TODO(API): replace this body with
-            //   return request('GET', '/api/admin/get_users.php', { role: role });
-            if (this.demoMode === 'fail-load') {
-                return failLater('Could not reach the server.');
-            }
-            if (this.demoMode === 'empty') {
-                return later({ users: [] });
-            }
-            return attempt(() => PL.sample.server.users(role));
+            return request('GET', '/api/admin/get_users.php', { role: role });
         },
 
         /**
@@ -289,12 +203,7 @@ getQuiz: function (quizId) {
          * Resolves with { user: { ...same shape as getUsers rows, links: [] } }
          */
         createUser: function (payload) {
-            // TODO(API): replace this body with
-            //   return request('POST', '/api/admin/create_user.php', payload);
-            if (this.demoMode === 'fail-save') {
-                return failLater('Could not reach the server.');
-            }
-            return attempt(() => PL.sample.server.createUser(payload));
+            return request('POST', '/api/admin/create_user.php', payload);
         },
 
         /**
@@ -303,41 +212,17 @@ getQuiz: function (quizId) {
          * Resolves with { ok: true }.
          */
         deleteUser: function (userId) {
-            // TODO(API): replace this body with
-            //   return request('POST', '/api/admin/delete_user.php', { user_id: userId });
-            if (this.demoMode === 'fail-save') {
-                return failLater('Could not reach the server.');
-            }
-            return attempt(() => PL.sample.server.deleteUser(userId));
+            return request('POST', '/api/admin/delete_user.php', { user_id: userId });
         },
 
         /** ADMIN: link a parent to a student (a row in parent_students). Resolves with { ok: true }. */
         addLink: function (parentId, studentId) {
-            // TODO(API): replace this body with
-            //   return request('POST', '/api/admin/add_link.php', { parent_id: parentId, student_id: studentId });
-            if (this.demoMode === 'fail-save') {
-                return failLater('Could not reach the server.');
-            }
-            return attempt(() => PL.sample.server.addLink(parentId, studentId));
+            return request('POST', '/api/admin/add_link.php', { parent_id: parentId, student_id: studentId });
         },
 
         /** ADMIN: remove one parent/child link. Resolves with { ok: true }. */
         removeLink: function (parentId, studentId) {
-            // TODO(API): replace this body with
-            //   return request('POST', '/api/admin/remove_link.php', { parent_id: parentId, student_id: studentId });
-            if (this.demoMode === 'fail-save') {
-                return failLater('Could not reach the server.');
-            }
-            return attempt(() => PL.sample.server.removeLink(parentId, studentId));
+            return request('POST', '/api/admin/remove_link.php', { parent_id: parentId, student_id: studentId });
         },
     };
-
-    /** Runs a sample "server" function and turns a thrown Error into a rejected promise. */
-    function attempt(fn) {
-        try {
-            return later(fn());
-        } catch (e) {
-            return failLater(e.message);
-        }
-    }
 })(window, window.jQuery);

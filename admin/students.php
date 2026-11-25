@@ -1,6 +1,5 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
-require __DIR__ . '/../includes/viewer.php';
 require_role('admin');
 
 $page_title = 'Students';
@@ -21,7 +20,6 @@ require __DIR__ . '/../includes/admin_header.php';
         <a class="btn btn-pl-primary" href="/admin/users.php">Add or remove students</a>
     </div>
 
-    <span class="pl-sample-badge" id="admin-sample" hidden>Sample data &middot; API not connected</span>
 
     <div class="pl-tools" id="students-tools" hidden>
         <div>
@@ -60,9 +58,6 @@ require __DIR__ . '/../includes/admin_header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="/assets/js/pl-sample-progress.js"></script>
-<script src="/assets/js/pl-sample-people.js"></script>
-<?php render_viewer_script(); ?>
 <script src="/assets/js/pl-api.js"></script>
 <script src="/assets/js/pl-util.js"></script>
 <script src="/assets/js/pl-format.js"></script>
