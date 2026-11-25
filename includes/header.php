@@ -31,6 +31,7 @@ $active_nav = $active_nav ?? '';
         <div class="pl-user">
             <span class="pl-avatar"><?= htmlspecialchars(strtoupper(substr($user['first_name'] ?? '?', 0, 1))) ?></span>
             <span><?= htmlspecialchars($user['first_name'] ?? 'Guest') ?></span>
+            <a href="/logout.php" class="btn btn-sm btn-outline-secondary ms-3">Log out</a>
         </div>
     </div>
 </header>
