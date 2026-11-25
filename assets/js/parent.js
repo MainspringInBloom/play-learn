@@ -42,7 +42,7 @@
         $('#child-heading').text(PL.fmt.name(child) + "’s progress");
         $('#child-detail').prop('hidden', false);
         if (updateUrl && global.history && global.history.replaceState) {
-            global.history.replaceState(null, '', '?student_id=' + studentId + (PL.api.demoMode ? '&demo=' + encodeURIComponent(PL.api.demoMode) : ''));
+            global.history.replaceState(null, '', '?student_id=' + studentId);
         }
         progress.load(studentId);
         feedback.load(studentId, child.first_name);
@@ -70,7 +70,6 @@
     }
 
     $(function () {
-        if (PL.api.placeholder) $('#parent-sample').prop('hidden', false);
         feedback = PL.feedbackPanel.create({ title: 'Messages' });
         progress = PL.progressView.create($('#progress-view'), { extra: feedback.$el });
         loadChildren();

@@ -1,6 +1,5 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
-require __DIR__ . '/../includes/viewer.php';
 require_role('admin');
 
 $page_title = 'Users';
@@ -17,7 +16,6 @@ require __DIR__ . '/../includes/admin_header.php';
     <p class="pl-muted">Add or remove student and parent accounts. To connect a parent to a student, use
         <a href="/admin/links.php">Family links</a>.</p>
 
-    <span class="pl-sample-badge" id="admin-sample" hidden>Sample data &middot; API not connected</span>
 
     <section class="pl-panel mb-4" aria-labelledby="add-title">
         <h2 id="add-title">Add an account</h2>
@@ -79,8 +77,6 @@ require __DIR__ . '/../includes/admin_header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="/assets/js/pl-sample-people.js"></script>
-<?php render_viewer_script(); ?>
 <script src="/assets/js/pl-api.js"></script>
 <script src="/assets/js/pl-util.js"></script>
 <script src="/assets/js/pl-format.js"></script>

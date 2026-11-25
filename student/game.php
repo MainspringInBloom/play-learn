@@ -1,21 +1,30 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
+require __DIR__ . '/../config/db.php';
+require __DIR__ . '/../includes/progress.php';
+require __DIR__ . '/../includes/games.php';
 require_role('student');
 
-// The games this page can run. Each must have an engine in assets/js/game-*.js.
-$games = [
-    'match_output' => 'Match the Output',
-    'memory'       => 'Memory Match',
-];
-
-$type = (string) ($_GET['type'] ?? '');
-if (!isset($games[$type])) {
+// A game belongs to a lesson: /student/game.php?lesson_id=N. The type comes from the lesson.
+$lesson_id = (int) ($_GET['lesson_id'] ?? 0);
+$stmt = $pdo->prepare('SELECT l.lesson_id, l.title, l.game_type, l.game_data FROM lessons l WHERE l.lesson_id = ?');
+$stmt->execute([$lesson_id]);
+$lesson = $stmt->fetch();
+$type = $lesson['game_type'] ?? '';
+if (!$lesson || !isset(PL_GAME_TYPES[$type]) || pl_playable_game($type, $lesson['game_data']) === null) {
     header('Location: /student/games.php');
     exit;
 }
-
-// 0 = no lesson attached (sample mode). Real games pass the lesson they belong to.
-$lesson_id = max(0, (int) ($_GET['lesson_id'] ?? 0));
+if (!pl_lesson_unlocked($pdo, $lesson_id, (int) $_SESSION['user_id'])) {
+    header('Location: /student/games.php');
+    exit;
+}
+$wanted = (string) ($_GET['type'] ?? '');
+if ($wanted !== '' && $wanted !== $type) {
+    header('Location: /student/games.php');
+    exit;
+}
+$games = [$type => PL_GAME_TYPES[$type]['label']];
 
 $page_title = $games[$type];
 $active_nav = 'games';
@@ -45,7 +54,6 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-    <span class="pl-sample-badge" id="game-sample" hidden>Sample data &middot; API not connected</span>
 
     <div id="game-stage">
         <noscript><p class="pl-state">This game needs JavaScript to run. Please turn it on and reload.</p></noscript>
@@ -61,7 +69,6 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="/assets/js/pl-sample-data.js"></script>
 <script src="/assets/js/pl-api.js"></script>
 <script src="/assets/js/pl-util.js"></script>
 <script src="/assets/js/game-runner.js"></script>

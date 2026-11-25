@@ -18,7 +18,6 @@ if (!$course) {
 $lesson = [
     'title'      => '',
     'content'    => '',
-    'game_type'  => '',
     'sort_order' => 0,
 ];
 $errors = [];
@@ -37,7 +36,6 @@ if ($is_edit && $_SERVER['REQUEST_METHOD'] !== 'POST') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lesson['title']      = trim($_POST['title'] ?? '');
     $lesson['content']    = trim($_POST['content'] ?? '');
-    $lesson['game_type']  = trim($_POST['game_type'] ?? '') ?: null;
     $lesson['sort_order'] = (int) ($_POST['sort_order'] ?? 0);
 
     if ($lesson['title'] === '') {
@@ -48,20 +46,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($is_edit) {
             $stmt = $pdo->prepare('
                 UPDATE lessons
-                SET title = ?, content = ?, game_type = ?, sort_order = ?
+                SET title = ?, content = ?, sort_order = ?
                 WHERE lesson_id = ? AND course_id = ?
             ');
             $stmt->execute([
-                $lesson['title'], $lesson['content'], $lesson['game_type'], $lesson['sort_order'],
+                $lesson['title'], $lesson['content'], $lesson['sort_order'],
                 $lesson_id, $course_id,
             ]);
         } else {
             $stmt = $pdo->prepare('
-                INSERT INTO lessons (course_id, title, content, game_type, sort_order)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO lessons (course_id, title, content, sort_order)
+                VALUES (?, ?, ?, ?)
             ');
             $stmt->execute([
-                $course_id, $lesson['title'], $lesson['content'], $lesson['game_type'], $lesson['sort_order'],
+                $course_id, $lesson['title'], $lesson['content'], $lesson['sort_order'],
             ]);
         }
 
@@ -102,18 +100,19 @@ require __DIR__ . '/../includes/admin_header.php';
         <textarea class="form-control" id="content" name="content" rows="5"><?= htmlspecialchars($lesson['content'] ?? '') ?></textarea>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label class="form-label" for="game_type">Game type <span class="text-muted small">(optional — built out in week 5)</span></label>
-            <input class="form-control" id="game_type" name="game_type"
-                   value="<?= htmlspecialchars($lesson['game_type'] ?? '') ?>" placeholder="e.g. matching, drag_drop">
-        </div>
-        <div class="col-md-6 mb-3">
-            <label class="form-label" for="sort_order">Order</label>
-            <input class="form-control" type="number" id="sort_order" name="sort_order"
-                   value="<?= (int) $lesson['sort_order'] ?>">
-        </div>
+    <div class="mb-3" style="max-width: 200px;">
+        <label class="form-label" for="sort_order">Order</label>
+        <input class="form-control" type="number" id="sort_order" name="sort_order"
+               value="<?= (int) $lesson['sort_order'] ?>">
+        <div class="form-text">Lessons unlock for students in this order.</div>
     </div>
+
+    <?php if ($is_edit): ?>
+        <p class="small text-muted">
+            Quizzes: <a href="/admin/quizzes.php?lesson_id=<?= $lesson_id ?>">manage</a> &middot;
+            Game: <a href="/admin/game_form.php?lesson_id=<?= $lesson_id ?>">add or edit</a>
+        </p>
+    <?php endif; ?>
 
     <button class="btn btn-pl-primary" type="submit"><?= $is_edit ? 'Save changes' : 'Add lesson' ?></button>
     <a class="btn btn-outline-secondary" href="/admin/lessons.php?course_id=<?= $course_id ?>">Cancel</a>

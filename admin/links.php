@@ -1,6 +1,5 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
-require __DIR__ . '/../includes/viewer.php';
 require_role('admin');
 
 $page_title = 'Family links';
@@ -16,7 +15,6 @@ require __DIR__ . '/../includes/admin_header.php';
     <h1 class="h3 mb-1">Family links</h1>
     <p class="pl-muted">Choose which students each parent can see and message. A student can have more than one parent.</p>
 
-    <span class="pl-sample-badge" id="admin-sample" hidden>Sample data &middot; API not connected</span>
 
     <p class="pl-status" id="links-status" role="status"></p>
 
@@ -35,8 +33,6 @@ require __DIR__ . '/../includes/admin_header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="/assets/js/pl-sample-people.js"></script>
-<?php render_viewer_script(); ?>
 <script src="/assets/js/pl-api.js"></script>
 <script src="/assets/js/pl-util.js"></script>
 <script src="/assets/js/pl-format.js"></script>

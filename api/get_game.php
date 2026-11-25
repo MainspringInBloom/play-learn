@@ -5,6 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/progress.php';
 
 function respond(int $status, array $data): void
 {
@@ -44,6 +45,10 @@ try {
     }
     if ($type !== '' && $type !== $lesson['game_type']) {
         respond(404, ['ok' => false, 'error' => 'That game is not part of this lesson']);
+    }
+    // Lessons open in order: the game of a locked lesson stays locked too.
+    if (!pl_lesson_unlocked($pdo, $lessonId, (int) $_SESSION['user_id'])) {
+        respond(403, ['ok' => false, 'error' => 'Finish the earlier lessons to unlock this game']);
     }
 
     $data = json_decode((string) $lesson['game_data'], true);
