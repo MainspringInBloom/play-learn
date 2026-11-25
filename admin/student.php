@@ -1,6 +1,5 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
-require __DIR__ . '/../includes/viewer.php';
 require_role('admin');
 
 $student_id = (int) ($_GET['student_id'] ?? 0);
@@ -26,15 +25,11 @@ require __DIR__ . '/../includes/admin_header.php';
         <p class="pl-muted mb-0" id="student-email"></p>
     </div>
 
-    <span class="pl-sample-badge" id="admin-sample" hidden>Sample data &middot; API not connected</span>
 
     <div id="progress-view"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="/assets/js/pl-sample-progress.js"></script>
-<script src="/assets/js/pl-sample-people.js"></script>
-<?php render_viewer_script(); ?>
 <script src="/assets/js/pl-api.js"></script>
 <script src="/assets/js/pl-util.js"></script>
 <script src="/assets/js/pl-format.js"></script>

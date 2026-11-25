@@ -82,17 +82,6 @@
     color: var(--pl-text-muted, #6B6A62);
 }
 
-.pl-sample-badge {
-    display: inline-block;
-    margin-bottom: 0.75rem;
-    padding: 0.15rem 0.65rem;
-    font-size: 0.72rem;
-    color: #6B5410;
-    background: #FFF4D6;
-    border: 1px solid #EBD79A;
-    border-radius: 999px;
-}
-
 .pl-eyebrow {
     margin: 0 0 0.5rem;
     font-size: 0.7rem;
@@ -695,4 +684,92 @@
     .pl-result-score {
         font-size: 2.6rem;
     }
+}
+
+/* ---- Lesson flow: syllabus, status chips, banners ---------------------------------- */
+
+.pl-banner {
+    margin: 0 0 1rem;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    color: #6B5410;
+    background: #FFF4D6;
+    border: 1px solid #EBD79A;
+    border-radius: 10px;
+}
+
+.pl-banner--done {
+    color: #1F5A3A;
+    background: #E6F4EC;
+    border-color: #B7DCC6;
+}
+
+.pl-status {
+    display: inline-block;
+    padding: 0.1rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 999px;
+    background: #ECEBE4;
+    color: #55544C;
+}
+
+.pl-status--done   { background: #E6F4EC; color: #1F5A3A; }
+.pl-status--active { background: #E5EEFB; color: #1F4A8A; }
+.pl-status--locked { background: #F1EFEA; color: #8A897F; }
+
+.pl-syllabus {
+    margin: 0;
+    padding: 0;
+}
+
+.pl-syllabus-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.6rem;
+    padding: 0.8rem 1rem;
+    background: #fff;
+    border: 1px solid #E4E2DA;
+    border-radius: 12px;
+}
+
+.pl-syllabus-item.is-current {
+    border-color: #7C6FD6;
+    box-shadow: 0 0 0 2px rgba(124, 111, 214, 0.15);
+}
+
+.pl-syllabus-item.is-locked {
+    opacity: 0.65;
+}
+
+.pl-syllabus-num {
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    border-radius: 50%;
+    background: #F1EFEA;
+}
+
+.pl-syllabus-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pl-syllabus-title {
+    margin: 0;
+    font-weight: 600;
+}
+
+.pl-syllabus-meta {
+    margin: 0.2rem 0 0;
+    font-size: 0.8rem;
+    color: #6B6A62;
+}
+
+.pl-syllabus-quiz {
+    margin-left: 0.6rem;
 }

@@ -129,7 +129,6 @@
     }
 
     $(function () {
-        if (PL.api.placeholder) $('#admin-sample').prop('hidden', false);
         load();
     });
 })(window, window.jQuery);

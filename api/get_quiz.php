@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/progress.php';
 
 if (!is_logged_in() || ($_SESSION['role'] ?? '') !== 'student') {
     http_response_code(401);
@@ -32,6 +33,13 @@ try {
     if (!$quiz) {
         http_response_code(404);
         echo json_encode(['ok' => false, 'error' => 'Quiz not found']);
+        exit;
+    }
+
+    // Lessons open in order: the quiz of a locked lesson stays locked too.
+    if (!pl_lesson_unlocked($pdo, (int) $quiz['lesson_id'], (int) $_SESSION['user_id'])) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'error' => 'Finish the earlier lessons to unlock this quiz']);
         exit;
     }
 

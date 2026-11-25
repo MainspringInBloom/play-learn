@@ -43,16 +43,11 @@ $(function () {
     const $stage = $('#game-stage');
     const $status = $('#game-status');
     const $actionbar = $('#game-actionbar');
-    const $sample = $('#game-sample');
 
     let data = null;
     let session = null;
     let run = 0; // bumped on every (re)start so stale timers and clicks are ignored
     let finished = false;
-
-    if (PL.api.placeholder) {
-        $sample.prop('hidden', false);
-    }
 
     // ---- Session: the score for one play-through ---------------------------
 
@@ -119,6 +114,10 @@ $(function () {
             })
             .catch(function (error) {
                 console.error(error);
+                if (/unlock|no game|not part/i.test(error.message || '')) {
+                    showMessage(error.message); // locked lesson, or no game for this lesson
+                    return;
+                }
                 showMessage("We couldn't load this game. Check your connection and try again.", 'Try again', load);
             });
     }
@@ -243,7 +242,7 @@ $(function () {
                 timeSpentSeconds: result.seconds,
             })
             .then(function (response) {
-                setSaveStatus(response && response.placeholder ? 'Sample mode: this score was not saved.' : 'Score saved.');
+                setSaveStatus('Score saved.');
             })
             .catch(function (error) {
                 console.error(error);

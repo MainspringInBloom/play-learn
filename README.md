@@ -7,29 +7,28 @@ progress) — built around two demo courses, Python 101 and Java 101.
 **Stack:** HTML, CSS, JavaScript, jQuery, Bootstrap (frontend) · PHP
 (backend) · MySQL (database)
 
-## Status: week 6 frontend/backend, plus Java 101 backend (lessons, quizzes, games)
+## Status
+
+Everything the frontend does now talks to the real backend; there is no sample data left.
 
 - Login/session logic for all 3 roles
-- Admin CRUD (add/view/edit/delete) for lessons and quizzes
-- Student dashboard shell, wired to real course/lesson data
-- Matching game and quiz page
-- Progress page charts
-- **Java 101 quiz backend (real data, no placeholders):**
-  `GET /api/get_quiz.php` loads a quiz from MySQL and `POST /api/save_quiz_score.php`
-  grades it on the server and saves the attempt (`quiz_attempts`) and each answer
-  (`quiz_responses`). `GET /api/get_java_lessons.php` lists the Java 101 lessons.
-- **Java 101 content:** `database/week7_java101_content.sql` fills all 10 Java lessons
-  with lesson text, gives every Java quiz its questions, and gives each lesson one game
-  (Match the Output or Memory Match).
-- **Games backend:** `GET /api/get_game.php` loads a lesson's game from
-  `lessons.game_type` / `lessons.game_data`, and `POST /api/save_game_score.php` saves the
-  result in `game_attempts`. The Games page lists the lesson games, and each lesson page
-  links to its game and quiz.
+- **Students** follow each course in order: lesson > quiz > next lesson > quiz.
+  Passing a quiz (60% or higher, `PL_PASS_PERCENT` in `includes/progress.php`) completes the
+  lesson and opens the next one. Lessons with no quiz have a "Mark lesson complete" button.
+  The syllabus shows Completed / In progress / Locked for every lesson and lets students
+  revisit finished lessons and practise passed quizzes; practice runs are graded but never
+  saved, so scores and progress are never overwritten.
+- **Admins** create, edit and delete lessons, quizzes, the questions and answer options
+  inside each quiz, and one game per lesson (Match the Output or Memory Match).
+- Student dashboard with real progress, Quizzes and Games hubs, Progress page with charts and messages
+- Parent dashboard (linked children, progress, messages) and Admin Students / Users / Family links pages
+- Server-side grading (`api/save_quiz_score.php`); `is_correct` is never sent to the browser
 
-Not yet built: complete lessons for Python 101 (quizzes, games).
-Progress and feedback endpoints (those pages still use sample data).
-Admin/Parent feedback message logic.
-Parent dashboard.
+Java 101 content (lesson text, quiz questions and one game per lesson) comes from
+`database/week7_java101_content.sql`; Python 101 content is added in Admin.
+
+Not built yet: student enrollment in courses, creating/deleting whole courses in Admin,
+password reset, and the complete Python 101 quizzes and games.
 
 ## Setup
 
@@ -64,32 +63,65 @@ it and are certain the placeholder is still there.
 5. **Log in** at `http://localhost:8000/login.php`:
    - `admin@test.com` → `/admin/index.php`
    - `student@test.com` → `/student/dashboard.php`
-   - `parent@test.com` → not built yet (later week)
+   - `parent@test.com` → `/parent/dashboard.php`
    - Ask a teammate for the test passwords; do not commit them.
 
-## Current known gaps and placeholders
+## How the lesson flow works
 
-- **No student↔course enrollment table yet.** The dashboard shows the
-  first course in the table rather than an enrolled one.
-- **Courses are read-only in Admin.** CRUD thus far covers lessons and
-  quizzes only, not courses themselves.
-- **Deleting a lesson cascades to its quizzes** via `ON DELETE CASCADE`.
-  There's a confirm dialog, but no separate "this also deletes N quizzes"
-  warning — worth a team decision on whether that needs to be louder.
+- A lesson is **complete** when the student passes every quiz of that lesson that has at least one
+  question. A quiz with no questions is hidden from students and does not block the lesson.
+- A lesson is **locked** until every earlier lesson in its course (by *Order*, then id) is complete.
+  Set `PL_LOCK_FUTURE_LESSONS` to `false` in `includes/progress.php` to open everything.
+- Quizzes and games of a locked lesson are locked too (the API answers 403, not just the page).
+- A quiz the student already passed is **practice**: `save_quiz_score.php` grades it and returns
+  `practice: true` without writing anything.
+- Admins control the order with the lesson's *Order* number, and can add quizzes, questions and a
+  game from **Courses > lessons**. New quizzes open straight on their question editor.
+- Editing a question updates its existing options in place, so students' past answers stay linked;
+  removing an option removes the answers that picked it. Deleting a quiz or lesson cascades to scores.
 
-## API endpoints (lessons, quizzes and games)
+## Known gaps
+
+- **No student↔course enrollment table yet.** The dashboard offers every course through a switcher.
+- **Courses are read-only in Admin.** CRUD covers lessons, quizzes, questions and games, not courses.
+- **Deleting a lesson cascades to its quizzes and scores** via `ON DELETE CASCADE`. There is a
+  confirm dialog but no per-item count in the warning.
+- Admin forms have no CSRF tokens (same as before); add them before any real deployment.
+- `api/get_java_lessons.php` is not used by any page and returns `success` instead of `ok`.
+
+## API endpoints
+
+All return JSON; errors look like `{"ok": false, "error": "..."}` with a 4xx/5xx status.
+The user always comes from the session, never from the request.
 
 | Endpoint | Method | Who | What it does |
 | --- | --- | --- | --- |
-| `/api/get_java_lessons.php` | GET | anyone | Java 101 lessons: `{success, lessons[]}` |
-| `/api/get_quiz.php?quiz_id=N` | GET | logged-in student | One quiz with questions and options. **Never sends `is_correct`**, so answers can't be read from the browser. |
-| `/api/get_game.php?lesson_id=N&type=T` | GET | logged-in student | The game stored on a lesson: `{ok, game:{title, context, instructions, pairs[]}}`. 404 if the lesson has no game or `type` doesn't match. |
-| `/api/save_game_score.php` | POST (JSON) | logged-in student | Body: `{lesson_id, score, max_score, time_spent_seconds}`. Inserts one `game_attempts` row. The server checks `max_score` equals pairs x 50 and `0 <= score <= max_score`, and returns `{ok, game_attempt_id, score, max_score}`. |
-| `/api/save_quiz_score.php` | POST (JSON) | logged-in student | Body: `{quizId, timeSpentSeconds, answers:[{question_id, option_id}]}`. The server grades, inserts one `quiz_attempts` row and one `quiz_responses` row per answer, and returns `{ok, attempt_id, score, correct_count, total_questions, results[]}`. Skipped questions are left out and count as not correct. |
+| `/api/get_quiz.php?quiz_id=N` | GET | student | Quiz with questions and options (never `is_correct`), plus `passed`. 403 if the lesson is locked. |
+| `/api/save_quiz_score.php` | POST | student | `{quizId, timeSpentSeconds, answers[]}` → graded result with `passed`, `practice`, `lesson_completed`, `results[]`. |
+| `/api/get_game.php?lesson_id=N&type=T` | GET | student | The lesson's game: `{ok, game:{title, context, instructions, pairs[]}}`. 404 if the lesson has no game or `type` doesn't match; 403 if the lesson is locked. |
+| `/api/save_game_score.php` | POST | student | `{lesson_id, score, max_score, time_spent_seconds}`. The server checks `max_score` equals pairs × 50 and `0 <= score <= max_score`; 403 if the lesson is locked. |
+| `/api/save_lesson_progress.php` | POST | student | `{lesson_id}`: completes a lesson that has no quiz. |
+| `/api/get_progress.php[?student_id=N]` | GET | student / parent / admin | Totals, charts data, courses, game scores. Parents only for linked children (403). |
+| `/api/get_feedback.php[?student_id=N]` | GET | student / parent / admin | Messages, newest first. |
+| `/api/mark_feedback_read.php` | POST | student | `{message_id}`. |
+| `/api/send_feedback.php` | POST | parent / admin | `{student_id, body}` (1–2000 chars). Parents only to their children. |
+| `/api/get_children.php` | GET | parent | Linked children with summaries. |
+| `/api/admin/get_students_overview.php` | GET | admin | Every student with stats and parents. |
+| `/api/admin/get_users.php?role=student\|parent` | GET | admin | Users with their links. |
+| `/api/admin/create_user.php` | POST | admin | `{role, first_name, last_name, email, password}` (hashed; 409 on duplicate email). |
+| `/api/admin/delete_user.php` | POST | admin | `{user_id}`; students and parents only. |
+| `/api/admin/add_link.php`, `remove_link.php` | POST | admin | `{parent_id, student_id}`. |
+| `/api/get_java_lessons.php` | GET | anyone | Java 101 lessons (legacy, unused). |
 
-All endpoints return JSON. Errors look like `{"ok": false, "error": "..."}` with a 4xx/5xx status.
 Frontend code calls them only through `assets/js/pl-api.js` (`PL.api`), using root-relative
-paths such as `/api/get_quiz.php`, so **serve the site from the repo root** (`php -S localhost:8000`).
+paths, so **serve the site from the repo root** (`php -S localhost:8000`).
+
+## Game data
+
+A lesson's game lives in `lessons.game_type` + `lessons.game_data` (JSON), edited in Admin
+(**Courses > lesson > Add game**). Shapes: Match the Output pairs are `{code, output}`;
+Memory Match pairs are `{a, b}`; each game needs 2–12 pairs. To add a new game type, add it to
+`includes/games.php`, write an engine in `assets/js/game-*.js`, and add a label in `includes/scores.php`.
 
 ## Verifying a quiz save
 

@@ -40,12 +40,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($is_edit) {
             $stmt = $pdo->prepare('UPDATE quizzes SET title = ? WHERE quiz_id = ? AND lesson_id = ?');
             $stmt->execute([$quiz['title'], $quiz_id, $lesson_id]);
-        } else {
-            $stmt = $pdo->prepare('INSERT INTO quizzes (lesson_id, title) VALUES (?, ?)');
-            $stmt->execute([$lesson_id, $quiz['title']]);
+            header('Location: /admin/quizzes.php?lesson_id=' . $lesson_id . '&saved=1');
+            exit;
         }
 
-        header('Location: /admin/quizzes.php?lesson_id=' . $lesson_id . '&saved=1');
+        $stmt = $pdo->prepare('INSERT INTO quizzes (lesson_id, title) VALUES (?, ?)');
+        $stmt->execute([$lesson_id, $quiz['title']]);
+        // A new quiz is empty, so go straight to adding its questions.
+        header('Location: /admin/questions.php?quiz_id=' . (int) $pdo->lastInsertId() . '&new=1');
         exit;
     }
 }
@@ -77,10 +79,11 @@ require __DIR__ . '/../includes/admin_header.php';
                value="<?= htmlspecialchars($quiz['title']) ?>">
     </div>
 
-    <p class="text-muted small">
-        Questions and answer options are added in a later week once the
-        <code>questions</code> / <code>answer_options</code> tables are built.
-    </p>
+    <?php if ($is_edit): ?>
+        <p class="small"><a href="/admin/questions.php?quiz_id=<?= $quiz_id ?>">Edit this quiz's questions</a></p>
+    <?php else: ?>
+        <p class="text-muted small">You'll add the questions on the next screen.</p>
+    <?php endif; ?>
 
     <button class="btn btn-pl-primary" type="submit"><?= $is_edit ? 'Save changes' : 'Add quiz' ?></button>
     <a class="btn btn-outline-secondary" href="/admin/quizzes.php?lesson_id=<?= $lesson_id ?>">Cancel</a>

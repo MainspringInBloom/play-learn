@@ -21,7 +21,7 @@ if (!$lesson) {
 
 $page_title = $lesson['title'] . ' — Quizzes';
 
-$quizzes_stmt = $pdo->prepare('SELECT quiz_id, title FROM quizzes WHERE lesson_id = ? ORDER BY quiz_id');
+$quizzes_stmt = $pdo->prepare('SELECT q.quiz_id, q.title, (SELECT COUNT(*) FROM questions s WHERE s.quiz_id = q.quiz_id) AS question_count FROM quizzes q WHERE q.lesson_id = ? ORDER BY q.quiz_id');
 $quizzes_stmt->execute([$lesson_id]);
 $quizzes = $quizzes_stmt->fetchAll();
 
@@ -49,6 +49,7 @@ require __DIR__ . '/../includes/admin_header.php';
     <thead>
         <tr>
             <th>Title</th>
+            <th>Questions</th>
             <th></th>
         </tr>
     </thead>
@@ -56,11 +57,17 @@ require __DIR__ . '/../includes/admin_header.php';
         <?php foreach ($quizzes as $quiz): ?>
             <tr>
                 <td><?= htmlspecialchars($quiz['title']) ?></td>
+                <td>
+                    <a href="/admin/questions.php?quiz_id=<?= (int) $quiz['quiz_id'] ?>"><?= (int) $quiz['question_count'] ?> question<?= (int) $quiz['question_count'] === 1 ? '' : 's' ?></a>
+                    <?php if ((int) $quiz['question_count'] === 0): ?><span class="badge text-bg-warning ms-1">Hidden from students</span><?php endif; ?>
+                </td>
                 <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary"
+                       href="/admin/questions.php?quiz_id=<?= (int) $quiz['quiz_id'] ?>">Questions</a>
                     <a class="btn btn-sm btn-outline-secondary"
                        href="/admin/quiz_form.php?lesson_id=<?= $lesson_id ?>&amp;id=<?= (int) $quiz['quiz_id'] ?>">Edit</a>
                     <form class="d-inline" method="post" action="/admin/delete_quiz.php"
-                          onsubmit="return confirm('Delete this quiz?');">
+                          onsubmit="return confirm('Delete this quiz, its questions and students\' scores on it?');">
                         <input type="hidden" name="quiz_id" value="<?= (int) $quiz['quiz_id'] ?>">
                         <input type="hidden" name="lesson_id" value="<?= $lesson_id ?>">
                         <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
@@ -70,7 +77,7 @@ require __DIR__ . '/../includes/admin_header.php';
         <?php endforeach; ?>
 
         <?php if (empty($quizzes)): ?>
-            <tr><td colspan="2" class="text-muted">No quizzes yet for this lesson.</td></tr>
+            <tr><td colspan="3" class="text-muted">No quizzes yet for this lesson.</td></tr>
         <?php endif; ?>
     </tbody>
 </table>
